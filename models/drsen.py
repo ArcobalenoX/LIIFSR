@@ -101,7 +101,7 @@ class DRSEN(nn.Module):
         m_body.append(default_conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
             m_body.append(ResBlock(n_feats))
-            m_body.append(SELayer(n_feats))
+            #m_body.append(SELayer(n_feats))
         self.body = nn.Sequential(*m_body)
 
         # define tail module
