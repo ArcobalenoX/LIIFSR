@@ -1,0 +1,14 @@
+test_dataset:
+  dataset:
+    name: image-folder
+    args:
+      root_path: ./load/WHU-RS19/WHU-RS19-test
+  wrapper:
+    name: sr-paired
+    args:
+      scale: 2
+  batch_size: 1
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
