@@ -52,7 +52,7 @@ epoch_val: 1
 epoch_save: 10
 multi_step_lr:
   milestones: [200, 400, 600, 800]
-  gamma: 0.9
+  gamma: 0.5
 
 
 
