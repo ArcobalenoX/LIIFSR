@@ -1,10 +1,7 @@
 import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from argparse import Namespace
-from PIL import Image
-from torchvision.transforms import ToTensor, ToPILImage
 
 import utils
 from models import register
@@ -200,13 +197,11 @@ def make_edcoord(n_resblocks=16, n_feats=64, upsampling=False, scale=1):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
-    #x = Image.open('../09_1.jpg')
-    #x = ToTensor()(x).unsqueeze(0)
     model = make_edcoord(upsampling=True, scale=2)
     y = model(x)
     print(model)
     param_nums = utils.compute_num_params(model)
     print(param_nums)
     print(y.shape)
-    #y = ToPILImage()(y.squeeze()).save('09_1_edmk.jpg')
+
 

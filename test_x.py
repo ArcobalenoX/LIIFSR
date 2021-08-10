@@ -1,6 +1,5 @@
 import argparse
 import os
-import math
 from functools import partial
 
 import yaml

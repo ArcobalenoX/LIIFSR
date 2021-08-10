@@ -1,20 +1,11 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
 from PIL import Image
-import time
-import numpy as np
 from torchvision import transforms
 import models
-import utils
-from utils import make_coord,set_save_path,ssim
-import datasets
-from test import eval_psnr,batched_predict
 
-
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE' 
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 modelpath = r'weights\edsr-baseline-liif.pth'
 lr_path = r'testimg\div2klrx4\0801x4.png'

@@ -6,7 +6,6 @@ import torch
 from torchvision import transforms
 
 import models
-from utils import make_coord
 from test_x import batched_predict
 
 

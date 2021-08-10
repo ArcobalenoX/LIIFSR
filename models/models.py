@@ -1,9 +1,5 @@
 import copy
-
-
 models = {}
-
-
 def register(name):
     def decorator(cls):
         models[name] = cls

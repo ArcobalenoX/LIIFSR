@@ -24,13 +24,11 @@
 import argparse
 import os
 import yaml
-import numpy as np
 import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
-from torchvision.utils import save_image
 
 import datasets
 import models
