@@ -8,7 +8,7 @@ test_dataset:
     name: sr-paired
     args:
       scale: 2
-  batch_size: 1
+  batch_size: 16
 
 data_norm:
   inp: {sub: [0.5], div: [0.5]}

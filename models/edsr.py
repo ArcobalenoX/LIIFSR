@@ -172,10 +172,8 @@ def make_edsr_baseline(n_resblocks=16, n_feats=64, res_scale=1,
     args.n_resblocks = n_resblocks
     args.n_feats = n_feats
     args.res_scale = res_scale
-
     args.scale = [scale]
     args.no_upsampling = no_upsampling
-
     args.rgb_range = rgb_range
     args.n_colors = 3
     return EDSR(args)
@@ -188,10 +186,8 @@ def make_edsr(n_resblocks=32, n_feats=256, res_scale=0.1,
     args.n_resblocks = n_resblocks
     args.n_feats = n_feats
     args.res_scale = res_scale
-
     args.scale = [scale]
     args.no_upsampling = no_upsampling
-
     args.rgb_range = rgb_range
     args.n_colors = 3
     return EDSR(args)

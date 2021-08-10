@@ -11,9 +11,9 @@ train_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 4
       augment: true
-  batch_size: 48
+  batch_size: 64
 
 val_dataset:
   dataset:
@@ -29,7 +29,7 @@ val_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 4
   batch_size: 8
 
 
@@ -38,17 +38,17 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: drsenca
+  name: drsens
   args:
     upsampling: true
-    scale: 2
+    scale: 4
 
 optimizer:
   name: adam
   args:
     lr: 1.e-4
 epoch_max: 500
-epoch_val: 10
+epoch_val: 5
 epoch_save: 50
 multi_step_lr:
   milestones: [100, 200, 300, 400]

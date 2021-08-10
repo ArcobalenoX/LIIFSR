@@ -13,7 +13,7 @@ train_dataset:
       inp_size: 48
       scale: 2
       augment: true
-  batch_size: 48
+  batch_size: 64
 
 val_dataset:
   dataset:
@@ -38,7 +38,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: drsen-se
+  name: drsens
   args:
     upsampling: true
     scale: 2

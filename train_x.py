@@ -8,18 +8,13 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR
 from torchvision.utils import save_image
-
 import sys
-sys.path.append("E:\\Code\\Python\\liif-self\\models")
-
+sys.path.append("models")
 import datasets
 from models import models
-
 import utils
 from test_x import eval_psnr
-
 from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss
-
 
 
 def make_data_loader(spec, tag=''):

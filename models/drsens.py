@@ -1,80 +1,29 @@
-import math
 import torch
 import torch.nn as nn
 from argparse import Namespace
 
 import utils
 from models import register
+from common import default_conv, SELayer, Upsampler
 
-# SELayer
-class SELayer(nn.Module):
-    def __init__(self, channel, reduction=16):
-        super(SELayer, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv_du = nn.Sequential(
-            nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        y = self.avg_pool(x)
-        y = self.conv_du(y)
-        return x * y
-
-
-def default_conv(in_channels, out_channels, kernel_size=3, bias=True):
-    return nn.Conv2d(in_channels, out_channels, kernel_size, padding=(kernel_size//2), bias=bias)
-
-class ResBlock(nn.Module):
+class RSEB(nn.Module):
     def __init__(self, n_feats):
-
-        super(ResBlock, self).__init__()
-        self.conv1 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
+        super().__init__()
+        self.conv1 = default_conv(n_feats, n_feats, 3)
         self.act1 = nn.ReLU(True)
-        self.conv2 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
-        self.conv3 = nn.Conv2d(n_feats*3, n_feats, 1, padding=(1//2))
+        self.conv2 = default_conv(n_feats, n_feats//2, 3)
+        self.conv3 = default_conv(n_feats+n_feats+n_feats//2, n_feats, 1)
         self.se = SELayer(n_feats, 8)
 
     def forward(self, x):
-
         x1 = x
         x2 = self.conv1(x1)
         x2 = self.act1(x2)
-
         x3 = self.conv2(x2)
         y = torch.cat([x3, x2, x1], dim=1)
         y = self.conv3(y)
-
         y = self.se(y)+x
-
         return y
-
-
-class Upsampler(nn.Sequential):
-    def __init__(self, conv, scale, n_feats, act=None, bias=True):
-        m = []
-        if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
-            for _ in range(int(math.log(scale, 2))):
-                m.append(conv(n_feats, 4 * n_feats, 3, bias))
-                m.append(nn.PixelShuffle(2))
-                if act == 'relu':
-                    m.append(nn.ReLU(True))
-                elif act == 'prelu':
-                    m.append(nn.PReLU(n_feats))
-        elif scale == 3:
-            m.append(conv(n_feats, 9 * n_feats, 3, bias))
-            m.append(nn.PixelShuffle(3))
-            if act == 'relu':
-                m.append(nn.ReLU(True))
-            elif act == 'prelu':
-                m.append(nn.PReLU(n_feats))
-        else:
-            raise NotImplementedError
-
-        super(Upsampler, self).__init__(*m)
-
 
 class DRSEN(nn.Module):
     def __init__(self, args):
@@ -86,35 +35,27 @@ class DRSEN(nn.Module):
         scale = args.scale
         act = nn.ReLU(True)
 
-        #define head module
-        self.head = Upsampler(default_conv, scale, args.n_colors, act=False)
+        #define identity branch
+        m_identity = []
+        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        self.identity = nn.Sequential(*m_identity)
 
-        # define body module
-        m_body = []
-        m_body.append(default_conv(args.n_colors, n_feats))
+        # define residual branch
+        m_residual = []
+        m_residual.append(default_conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
-            m_body.append(ResBlock(n_feats))
-        self.body = nn.Sequential(*m_body)
-
-        # define tail module
-        m_tail = []
-        m_tail.append(default_conv(n_feats, args.n_colors, kernel_size))
-        m_tail.append(Upsampler(default_conv, scale, args.n_colors, act=False))
-        self.tail = nn.Sequential(*m_tail)
+            m_residual.append(RSEB(n_feats))
+        m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
+        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        self.residual = nn.Sequential(*m_residual)
 
         self.out_dim = args.n_colors
 
     def forward(self, x):
-
-        inp = self.head(x)
-
-        res = self.body(x)
-
-        res = self.tail(res)
-
-        x = res+inp
-
-        return x
+        inp = self.identity(x)
+        res = self.residual(x)
+        y = res+inp
+        return y
 
     def load_state_dict(self, state_dict, strict=True):
         own_state = self.state_dict()

@@ -5,27 +5,8 @@ from argparse import Namespace
 
 import utils
 from models import register
+from common import default_conv, SELayer, Upsampler
 
-# SELayer
-class SELayer(nn.Module):
-    def __init__(self, channel, reduction=16):
-        super(SELayer, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv_du = nn.Sequential(
-            nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        y = self.avg_pool(x)
-        y = self.conv_du(y)
-        return x * y
-
-
-def default_conv(in_channels, out_channels, kernel_size=3, bias=True):
-    return nn.Conv2d(in_channels, out_channels, kernel_size, padding=(kernel_size//2), bias=bias)
 
 class ResBlock(nn.Module):
     def __init__(self, n_feats):
@@ -56,31 +37,6 @@ class ResBlock(nn.Module):
 
         return y
 
-
-class Upsampler(nn.Sequential):
-    def __init__(self, conv, scale, n_feats, act=None, bias=True):
-        m = []
-        if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
-            for _ in range(int(math.log(scale, 2))):
-                m.append(conv(n_feats, 4 * n_feats, 3, bias))
-                m.append(nn.PixelShuffle(2))
-                if act == 'relu':
-                    m.append(nn.ReLU(True))
-                elif act == 'prelu':
-                    m.append(nn.PReLU(n_feats))
-        elif scale == 3:
-            m.append(conv(n_feats, 9 * n_feats, 3, bias))
-            m.append(nn.PixelShuffle(3))
-            if act == 'relu':
-                m.append(nn.ReLU(True))
-            elif act == 'prelu':
-                m.append(nn.PReLU(n_feats))
-        else:
-            raise NotImplementedError
-
-        super(Upsampler, self).__init__(*m)
-
-
 class DRSENMK(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -98,7 +54,6 @@ class DRSENMK(nn.Module):
         m_head.append(default_conv(n_feats, args.n_colors, kernel_size))
         self.head = nn.Sequential(*m_head)
 
-        #self.head = Upsampler(default_conv, scale, args.n_colors, act=False)
 
         # define body module
         m_body = []

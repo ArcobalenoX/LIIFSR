@@ -5,58 +5,9 @@ from argparse import Namespace
 
 import utils
 from models import register
+from common import default_conv, Upsampler
+from CoordAtt import CoordAtt
 
-class h_sigmoid(nn.Module):
-    def __init__(self, inplace=True):
-        super(h_sigmoid, self).__init__()
-        self.relu = nn.ReLU6(inplace=inplace)
-
-    def forward(self, x):
-        return self.relu(x + 3) / 6
-
-
-class h_swish(nn.Module):
-    def __init__(self, inplace=True):
-        super(h_swish, self).__init__()
-        self.sigmoid = h_sigmoid(inplace=inplace)
-
-    def forward(self, x):
-        return x * self.sigmoid(x)
-
-
-class CoordAtt(nn.Module):
-    def __init__(self, inp, oup, reduction=32):
-        super(CoordAtt, self).__init__()
-        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
-        self.pool_w = nn.AdaptiveAvgPool2d((1, None))
-        mip = max(8, inp // reduction)
-        self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
-        self.act = h_swish()
-        self.conv_h = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
-        self.conv_w = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
-
-    def forward(self, x):
-        identity = x
-
-        n, c, h, w = x.size()
-        x_h = self.pool_h(x)
-        x_w = self.pool_w(x).permute(0, 1, 3, 2)
-
-        y = torch.cat([x_h, x_w], dim=2)
-        y = self.conv1(y)
-        y = self.act(y)
-
-        x_h, x_w = torch.split(y, [h, w], dim=2)
-        x_w = x_w.permute(0, 1, 3, 2)
-        a_h = self.conv_h(x_h).sigmoid()
-        a_w = self.conv_w(x_w).sigmoid()
-
-        out = identity * a_w * a_h
-        return out
-
-
-def default_conv(in_channels, out_channels, kernel_size=3, bias=True):
-    return nn.Conv2d(in_channels, out_channels, kernel_size, padding=(kernel_size//2), bias=bias)
 
 class ResBlock(nn.Module):
     def __init__(self, n_feats):
@@ -83,30 +34,6 @@ class ResBlock(nn.Module):
         return y
 
 
-class Upsampler(nn.Sequential):
-    def __init__(self, conv, scale, n_feats, act=None, bias=True):
-        m = []
-        if (scale & (scale - 1)) == 0:    # Is scale = 2^n?
-            for _ in range(int(math.log(scale, 2))):
-                m.append(conv(n_feats, 4 * n_feats, 3, bias))
-                m.append(nn.PixelShuffle(2))
-                if act == 'relu':
-                    m.append(nn.ReLU(True))
-                elif act == 'prelu':
-                    m.append(nn.PReLU(n_feats))
-        elif scale == 3:
-            m.append(conv(n_feats, 9 * n_feats, 3, bias))
-            m.append(nn.PixelShuffle(3))
-            if act == 'relu':
-                m.append(nn.ReLU(True))
-            elif act == 'prelu':
-                m.append(nn.PReLU(n_feats))
-        else:
-            raise NotImplementedError
-
-        super(Upsampler, self).__init__(*m)
-
-
 class DRSENCA(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -123,8 +50,6 @@ class DRSENCA(nn.Module):
         m_head.append(Upsampler(default_conv, scale, n_feats, act=False))
         m_head.append(default_conv(n_feats, args.n_colors, kernel_size))
         self.head = nn.Sequential(*m_head)
-
-        #self.head = Upsampler(default_conv, scale, args.n_colors, act=False)
 
         # define body module
         m_body = []

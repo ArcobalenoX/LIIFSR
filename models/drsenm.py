@@ -35,41 +35,30 @@ class DRSEN(nn.Module):
         scale = args.scale
         act = nn.ReLU(True)
 
-        #define head module
-        m_head = []
-        m_head.append(default_conv(args.n_colors, n_feats, kernel_size))
-        m_head.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_head.append(default_conv(n_feats, args.n_colors, kernel_size))
-        self.head = nn.Sequential(*m_head)
+        #define identity branch
+        m_identity = []
+        m_identity.append(default_conv(args.n_colors, n_feats, kernel_size))
+        m_identity.append(Upsampler(default_conv, scale, n_feats, act=False))
+        m_identity.append(default_conv(n_feats, args.n_colors, kernel_size))
+        self.identity = nn.Sequential(*m_identity)
 
-        #self.head = Upsampler(default_conv, scale, args.n_colors, act=False)
-
-        # define body module
-        m_body = []
-        m_body.append(default_conv(args.n_colors, n_feats))
+        # define residual branch
+        m_residual = []
+        m_residual.append(default_conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
-            m_body.append(RSEB(n_feats))
-        self.body = nn.Sequential(*m_body)
-
-        # define tail module
-        m_tail = []
-        m_tail.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_tail.append(default_conv(n_feats, args.n_colors, kernel_size))
-        self.tail = nn.Sequential(*m_tail)
+            m_residual.append(RSEB(n_feats))
+        m_residual.append(Upsampler(default_conv, scale, n_feats, act=False))
+        m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
+        self.residual = nn.Sequential(*m_residual)
 
         self.out_dim = args.n_colors
 
     def forward(self, x):
+        inp = self.identity(x)
+        res = self.residual(x)
+        y = res + inp
+        return y
 
-        inp = self.head(x)
-
-        res = self.body(x)
-
-        res = self.tail(res)
-
-        x = res+inp
-
-        return x
 
     def load_state_dict(self, state_dict, strict=True):
         own_state = self.state_dict()
@@ -86,7 +75,7 @@ class DRSEN(nn.Module):
             elif strict:
                 raise KeyError(f'unexpected key "{name}" in state_dict')
 
-@register('drsen')
+@register('drsenm')
 def make_drsen(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
     args = Namespace()
     args.n_resblocks = n_resblocks

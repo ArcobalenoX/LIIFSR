@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim import  Adam
-from .discriminator import Discriminator
+from torch.optim import Adam
+from discriminator import Discriminator
 
 class CharbonnierLoss(nn.Module):
     """Charbonnier Loss (L1)"""

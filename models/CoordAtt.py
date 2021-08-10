@@ -29,7 +29,7 @@ class CoordAtt(nn.Module):
         mip = max(8, inp // reduction)
 
         self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
-        self.bn1 = nn.BatchNorm2d(mip)
+        #self.bn1 = nn.BatchNorm2d(mip)
         self.act = h_swish()
         
         self.conv_h = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
@@ -45,7 +45,7 @@ class CoordAtt(nn.Module):
 
         y = torch.cat([x_h, x_w], dim=2)
         y = self.conv1(y)
-        y = self.bn1(y)
+        #y = self.bn1(y)
         y = self.act(y) 
         
         x_h, x_w = torch.split(y, [h, w], dim=2)
