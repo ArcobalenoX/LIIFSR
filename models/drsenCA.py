@@ -11,8 +11,7 @@ from CoordAtt import CoordAtt
 
 class ResBlock(nn.Module):
     def __init__(self, n_feats):
-
-        super(ResBlock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
         self.act1 = nn.ReLU(True)
         self.conv2 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
@@ -20,17 +19,13 @@ class ResBlock(nn.Module):
         self.att = CoordAtt(n_feats, n_feats, 8)
 
     def forward(self, x):
-
         x1 = x
         x2 = self.conv1(x1)
         x2 = self.act1(x2)
-
         x3 = self.conv2(x2)
         y = torch.cat([x3, x2, x1], dim=1)
         y = self.conv3(y)
-
         y = self.att(y)+x
-
         return y
 
 
@@ -44,39 +39,26 @@ class DRSENCA(nn.Module):
         scale = args.scale
         act = nn.ReLU(True)
 
-        #define head module
-        m_head = []
-        m_head.append(default_conv(args.n_colors, n_feats))
-        m_head.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_head.append(default_conv(n_feats, args.n_colors, kernel_size))
-        self.head = nn.Sequential(*m_head)
+        #define identity branch
+        m_identity = []
+        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        self.identity = nn.Sequential(*m_identity)
 
-        # define body module
-        m_body = []
-        m_body.append(default_conv(args.n_colors, n_feats))
+        # define residual branch
+        m_residual = []
+        m_residual.append(default_conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
-            m_body.append(ResBlock(n_feats))
-        self.body = nn.Sequential(*m_body)
-
-        # define tail module
-        m_tail = []
-        m_tail.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_tail.append(default_conv(n_feats, args.n_colors, kernel_size))
-        self.tail = nn.Sequential(*m_tail)
-
+            m_residual.append(ResBlock(n_feats))
+        m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
+        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        self.residual = nn.Sequential(*m_residual)
         self.out_dim = args.n_colors
 
     def forward(self, x):
-
-        inp = self.head(x)
-
-        res = self.body(x)
-
-        res = self.tail(res)
-
-        x = res+inp
-
-        return x
+        inp = self.identity(x)
+        res = self.residual(x)
+        y = res+inp
+        return y
 
     def load_state_dict(self, state_dict, strict=True):
         own_state = self.state_dict()
