@@ -2,6 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
+      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
       root_path: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_train_patch
       repeat: 1
       #cache: in_memory
@@ -18,6 +19,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
+      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patch
       root_path: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_test_patch
       first_k: 10
       repeat: 1
