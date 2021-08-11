@@ -4,8 +4,10 @@ from PIL import Image
 import time
 import torch
 from torchvision import transforms
+import sys
+sys.path.append("models")
 
-import models
+from models import models
 from test_x import batched_predict
 
 

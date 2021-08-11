@@ -10,7 +10,8 @@ from tqdm import tqdm
 import datasets
 import models
 import utils
-
+import sys
+sys.path.append("models")
 
 def batched_predict(model, inp):
     with torch.no_grad():

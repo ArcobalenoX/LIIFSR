@@ -4,7 +4,8 @@ from PIL import Image
 import time
 import torch
 from torchvision import transforms
-
+import sys
+sys.path.append("models")
 import models
 from utils import make_coord
 from test import batched_predict
