@@ -2,7 +2,8 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
+      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
+      root_path: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_train_patch
       repeat: 1
       #cache: in_memory
       cache: none
@@ -10,15 +11,16 @@ train_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
       augment: true
-  batch_size: 64
+  batch_size: 128
 
 val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patch
+      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patch
+      root_path: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_test_patch
       first_k: 10
       repeat: 1
       #cache: in_memory
@@ -27,7 +29,7 @@ val_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
   batch_size: 8
 
 
@@ -36,17 +38,17 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: edmkb
+  name: edmk
   args:
+    scale: 3
     upsampling: true
-    scale: 2
 
 optimizer:
   name: adam
   args:
     lr: 1.e-4
 epoch_max: 500
-epoch_val: 5
+epoch_val: 10
 epoch_save: 50
 multi_step_lr:
   milestones: [100, 200, 300, 400]

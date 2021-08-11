@@ -1,17 +1,17 @@
 import argparse
 import os
 from functools import partial
-
 import yaml
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import sys
+sys.path.append("models")
 import datasets
 import models
 import utils
-import sys
-sys.path.append("models")
+
 
 def batched_predict(model, inp):
     with torch.no_grad():
