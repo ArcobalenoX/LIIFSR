@@ -14,10 +14,11 @@ from test_x import batched_predict
 if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='railway_station_565.jpg')
+    #parser.add_argument('--input', default='railway_station_565.jpg')
+    parser.add_argument('--input', default=r'E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patch\007_0_0.jpg')
     parser.add_argument('--model', default='save/_train_edx/epoch-best.pth')
     parser.add_argument('--scale', default=2)
-    parser.add_argument('--output', default='railway_station_565_2x2.jpg')
+    parser.add_argument('--output', default='007_0_0x2.jpg')
     parser.add_argument('--gpu', default='0')
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
