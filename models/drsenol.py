@@ -29,7 +29,7 @@ class ResBlock(nn.Module):
         return y
 
 
-class DRSEN(nn.Module):
+class DRSENOL(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
@@ -83,7 +83,7 @@ def make_drsenol(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
     args.upsampling = upsampling
     args.scale = scale
     args.n_colors = 3
-    return DRSEN(args)
+    return DRSENOL(args)
 
 
 if __name__ == '__main__':
