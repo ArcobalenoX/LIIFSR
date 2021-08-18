@@ -13,7 +13,7 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-from test_x import eval_psnr
+from test_x import eval
 from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss
 
 
@@ -50,7 +50,7 @@ def prepare_training():
             lr_scheduler = None
         else:
             lr_scheduler = MultiStepLR(optimizer, **config['multi_step_lr'])
-            print(config['multi_step_lr'])
+            #print(config['multi_step_lr'])
         #for _ in range(epoch_start - 1):
             #lr_scheduler.step()
     else:
@@ -109,14 +109,15 @@ def train(train_loader, model, optimizer):
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
         loss_char = criterion_char(pred, gt)
+        print(f"char{loss_char}")
         #loss_edge = criterion_edge(pred, gt)
-        #loss_adv = advloss(pred, gt)
-        #print(f"char{loss_char}, edge{loss_edge}")
-        loss = (loss_char) #+ (loss_edge)
-        #print(f"adv{loss_adv}")
+        #print(f"edge{loss_edge}")
+        loss_adv = advloss(pred, gt)
+        print(f"adv{loss_adv}")
 
+
+        loss = (loss_char) + (1e-2*loss_adv) #+ (loss_edge)
         #loss = loss_L1(pred, gt)
-
         train_loss.add(loss.item())
 
         optimizer.zero_grad()
@@ -157,14 +158,14 @@ def main(config_, save_path):
         t_epoch_start = timer.t()
         log_info = ['epoch {}/{}'.format(epoch, epoch_max)]
 
-        print(f"epoch--{epoch},lr--{optimizer.param_groups[0]['lr']}")
+        #print(f"epoch--{epoch},lr--{optimizer.param_groups[0]['lr']}")
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
         train_loss = train(train_loader, model, optimizer)
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        log_info.append('train: loss={:.4f}'.format(train_loss))
+        log_info.append(f'train: loss={train_loss:.4f}')
         writer.add_scalars('loss', {'train': train_loss}, epoch)
 
         if n_gpus > 1:
@@ -191,14 +192,15 @@ def main(config_, save_path):
                 model_ = model.module
             else:
                 model_ = model
-            val_res,ssim = eval_psnr(val_loader, model_,
+            val_psnr, val_ssim = eval(val_loader, model_,
                 data_norm=config['data_norm'],
                 eval_type=config.get('eval_type'))
 
-            log_info.append( 'val: psnr={:.4f}'.format(val_res))
-            writer.add_scalars('psnr', {'val': val_res}, epoch)
-            if val_res > max_val_v:
-                max_val_v = val_res
+            log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
+            writer.add_scalars('psnr', {'val': val_psnr}, epoch)
+            writer.add_scalars('ssim', {'val': val_ssim}, epoch)
+            if val_psnr > max_val_v:
+                max_val_v = val_psnr
                 torch.save(sv_file, os.path.join(save_path, 'epoch-best.pth'))
 
         t = timer.t()

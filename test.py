@@ -57,7 +57,7 @@ def eval_psnr(loader, model, data_norm=None, eval_type=None, eval_bsize=None, ve
     else:
         metric_fn = utils.calc_psnr
 
-    val_res = utils.Averager()
+    val_psnr = utils.Averager()
     val_ssim = utils.Averager()
 
     pbar = tqdm(loader, leave=False, desc='val')
@@ -81,16 +81,16 @@ def eval_psnr(loader, model, data_norm=None, eval_type=None, eval_bsize=None, ve
         pred = pred.view(*shape).permute(0, 3, 1, 2).contiguous()
         batch['gt'] = batch['gt'].view(*shape).permute(0, 3, 1, 2).contiguous()
 
-        res = metric_fn(pred, batch['gt'])
-        val_res.add(res.item(), inp.shape[0])
+        psnr = metric_fn(pred, batch['gt'])
+        val_psnr.add(psnr.item(), inp.shape[0])
 
         ssim = utils.ssim(pred, batch['gt'])
         val_ssim.add(ssim.item(), inp.shape[0])
 
         if verbose:
-            pbar.set_description(f'PSNR {val_res.item():.4f} SSIM {val_ssim.item():.4f}')
+            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
 
-    return val_res.item(), val_ssim.item()
+    return val_psnr.item(), val_ssim.item()
 
 
 
@@ -121,9 +121,9 @@ if __name__ == '__main__':
     model_spec = torch.load(args.model)['model']
     model = models.make(model_spec, load_sd=True).cuda()
 
-    res, ssim = eval_psnr(loader, model,
-        data_norm=config.get('data_norm'),
-        eval_type=config.get('eval_type'),
-        eval_bsize=config.get('eval_bsize'),
-        verbose=True)
-    print(f'result: psnr={res:.4f} ssim={ssim:.4f}')
+    psnr, ssim = eval_psnr(loader, model,
+                           data_norm=config.get('data_norm'),
+                           eval_type=config.get('eval_type'),
+                           eval_bsize=config.get('eval_bsize'),
+                           verbose=True)
+    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
