@@ -109,15 +109,16 @@ def train(train_loader, model, optimizer):
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
         loss_char = criterion_char(pred, gt)
-        print(f"char{loss_char}")
-        #loss_edge = criterion_edge(pred, gt)
-        #print(f"edge{loss_edge}")
-        loss_adv = advloss(pred, gt)
-        print(f"adv{loss_adv}")
+        print(f"char: {loss_char}")
+        loss_edge = criterion_edge(pred, gt)
+        print(f"edge{loss_edge}")
+        #loss_adv = advloss(pred, gt)
+        #print(f"adv: {loss_adv}")
 
 
-        loss = (loss_char) + (1e-2*loss_adv) #+ (loss_edge)
+        loss = (loss_char) + (loss_edge) #+ (1e-3*loss_adv)
         #loss = loss_L1(pred, gt)
+        #print(f"loss: {loss}")
         train_loss.add(loss.item())
 
         optimizer.zero_grad()
