@@ -4,11 +4,12 @@ import torch.nn.functional as F
 from torch.optim import Adam
 from discriminator import Discriminator
 
+
 class CharbonnierLoss(nn.Module):
     """Charbonnier Loss (L1)"""
 
     def __init__(self, eps=1e-3):
-        super(CharbonnierLoss, self).__init__()
+        super().__init__()
         self.eps = eps
 
     def forward(self, x, y):
@@ -19,9 +20,9 @@ class CharbonnierLoss(nn.Module):
 
 class EdgeLoss(nn.Module):
     def __init__(self):
-        super(EdgeLoss, self).__init__()
+        super().__init__()
         k = torch.Tensor([[.05, .25, .4, .25, .05]])
-        self.kernel = torch.matmul(k.t(), k).unsqueeze(0).repeat(3,1,1,1)
+        self.kernel = torch.matmul(k.t(), k).unsqueeze(0).repeat(3, 1, 1, 1)
         if torch.cuda.is_available():
             self.kernel = self.kernel.cuda()
         self.loss = CharbonnierLoss()
@@ -29,7 +30,6 @@ class EdgeLoss(nn.Module):
     def conv_gauss(self, img):
         n_channels, _, kw, kh = self.kernel.shape
         img = F.pad(img, (kw//2, kh//2, kw//2, kh//2), mode='replicate')
-
         return F.conv2d(img, self.kernel, groups=n_channels)
 
     def laplacian_kernel(self, current):
@@ -49,8 +49,7 @@ class EdgeLoss(nn.Module):
 class AdversarialLoss(nn.Module):
     def __init__(self,use_cpu=False, num_gpu=1, gan_type='WGAN_GP', gan_k=1,
                  lr_dis=1e-4, train_crop_size=40):
-
-        super(AdversarialLoss, self).__init__()
+        super().__init__()
         self.gan_type = gan_type
         self.gan_k = gan_k
         self.device = torch.device('cpu' if use_cpu else 'cuda')
