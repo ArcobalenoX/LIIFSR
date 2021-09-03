@@ -14,12 +14,10 @@ from test import batched_predict
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model')
-    parser.add_argument('--scale',default=2)
+    parser.add_argument('--scale', default=2)
     parser.add_argument('--gpu', default='0')
-    #parser.add_argument('--inputdir', default=r'testimg/div2klrx4')
-    #parser.add_argument('--outputdir', default=r'testimg/DIVX4-EDATTX2')
-    parser.add_argument('--inputdir', default=r'load/WHU-RS19/WHU-RS19-test')
-    parser.add_argument('--outputdir', default=r'testimg/WHU-RS19-test-EDATTx2')
+    parser.add_argument('--inputdir', default=r'load/div2k/DIV2K_valid_LR_bicubic/X2')
+    parser.add_argument('--outputdir', default=r'testimg/sirenx2x2')
     args = parser.parse_args()
     torch.cuda.empty_cache()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -31,6 +29,7 @@ if __name__ == '__main__':
 
     for imgs in os.listdir(inputdir):
         st = time.time()
+        print(f"{imgs} start...  ", end="")
 
         imgpath = os.path.join(inputdir, imgs)
         img = transforms.ToTensor()(Image.open(imgpath))
@@ -47,7 +46,7 @@ if __name__ == '__main__':
         transforms.ToPILImage()(pred).save(output)
 
         et = time.time()
-        print(f"{imgs} spend time {(et-st):.3f}s")
+        print(f"spend time {(et-st):.2f}s")
 
 
 

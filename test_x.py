@@ -2,8 +2,10 @@ import argparse
 import os
 from functools import partial
 import yaml
+import math
 import torch
 from torch.utils.data import DataLoader
+from torchvision.utils import save_image
 from tqdm import tqdm
 
 import sys
@@ -45,6 +47,9 @@ def eval(loader, model, data_norm=None, eval_type=None, verbose=False):
     else:
         raise NotImplementedError
 
+    max_psnr = 0
+    max_ssim = 0
+
     val_psnr = utils.Averager()
     val_ssim = utils.Averager()
 
@@ -63,6 +68,13 @@ def eval(loader, model, data_norm=None, eval_type=None, verbose=False):
 
         ssim = utils.ssim(pred, batch['gt'])
         val_ssim.add(ssim.item(), inp.shape[0])
+
+        if psnr > max_psnr:
+            max_psnr = psnr
+            save_image(pred, f"testimg/max_psnr.jpg", nrow=int(math.sqrt(pred.shape[0])))
+        if ssim > max_ssim:
+            max_ssim = ssim
+            save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
 
         if verbose:
             pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
@@ -93,7 +105,6 @@ if __name__ == '__main__':
         num_workers=0, pin_memory=True)
 
     sv_file = torch.load(args.model)
-    #print(f'model——{sv_file["model"]}')
     print(f'epoch——{sv_file["epoch"]}')
 
     model_spec = torch.load(args.model)['model']

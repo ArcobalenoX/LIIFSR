@@ -32,9 +32,9 @@ class ResBlock(nn.Module):
 
 
 
-class EDX(nn.Module):
+class EDCA(nn.Module):
     def __init__(self, args):
-        super(EDX, self).__init__()
+        super().__init__()
         self.args = args
         kernel_size = 3
         n_resblocks = args.n_resblocks
@@ -99,8 +99,8 @@ class EDX(nn.Module):
                 if name.find('tail') == -1:
                     raise KeyError(f'unexpected key "{name}" in state_dict')
 
-@register('edx')
-def make_edx(n_resblocks=16, n_feats=64, res_scale=1, scale=1, upsampling=False, rgb_range=1):
+@register('edca')
+def make_edca(n_resblocks=16, n_feats=64, res_scale=1, scale=1, upsampling=False, rgb_range=1):
     args = Namespace()
     args.n_resblocks = n_resblocks
     args.n_feats = n_feats
@@ -109,12 +109,12 @@ def make_edx(n_resblocks=16, n_feats=64, res_scale=1, scale=1, upsampling=False,
     args.upsampling = upsampling
     args.rgb_range = rgb_range
     args.n_colors = 3
-    return EDX(args)
+    return EDCA(args)
 
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
-    model = make_edx(upsampling=True, scale=2)
+    model = make_edca(upsampling=True, scale=2)
     y = model(x)
     print(model)
     param_nums = utils.compute_num_params(model)

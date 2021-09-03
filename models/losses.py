@@ -47,7 +47,7 @@ class EdgeLoss(nn.Module):
 
 
 class AdversarialLoss(nn.Module):
-    def __init__(self,use_cpu=False, num_gpu=1, gan_type='WGAN_GP', gan_k=1,
+    def __init__(self, use_cpu=False, num_gpu=1, gan_type='WGAN_GP', gan_k=1,
                  lr_dis=1e-4, train_crop_size=40):
         super().__init__()
         self.gan_type = gan_type

@@ -15,10 +15,8 @@ if __name__ == '__main__':
     parser.add_argument('--model')
     parser.add_argument('--scale',default=2)
     parser.add_argument('--gpu', default='0')
-    #parser.add_argument('--inputdir', default=r'testimg/div2klrx4')
-    #parser.add_argument('--outputdir', default=r'testimg/DIVX4-EDATTX2')
-    parser.add_argument('--inputdir', default=r'load/WHU-RS19/WHU-RS19-test')
-    parser.add_argument('--outputdir', default=r'testimg/WHUedx-x2')
+    parser.add_argument('--inputdir', default=r'E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patchx2')
+    parser.add_argument('--outputdir', default=r'testimg/DRSENS-x2')
     args = parser.parse_args()
     torch.cuda.empty_cache()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu

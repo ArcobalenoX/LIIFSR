@@ -36,10 +36,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: edsr-baseline
+  name: edca
   args:
     scale: 2
-    no_upsampling: false
+    upsampling: true
 
 optimizer:
   name: adam
