@@ -1,6 +1,5 @@
 import math
 from argparse import Namespace
-
 import torch
 import torch.nn as nn
 
@@ -43,7 +42,7 @@ class Upsampler(nn.Sequential):
 ## Channel Attention (CA) Layer
 class CALayer(nn.Module):
     def __init__(self, channel, reduction=16):
-        super(CALayer, self).__init__()
+        super().__init__()
         # global average pooling: feature --> point
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         # feature channel downscale and upscale --> channel weight
@@ -61,11 +60,10 @@ class CALayer(nn.Module):
 
 ## Residual Channel Attention Block (RCAB)
 class RCAB(nn.Module):
-    def __init__(
-        self, conv, n_feat, kernel_size, reduction,
+    def __init__(self, conv, n_feat, kernel_size, reduction,
         bias=True, bn=False, act=nn.ReLU(True), res_scale=1):
 
-        super(RCAB, self).__init__()
+        super().__init__()
         modules_body = []
         for i in range(2):
             modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
@@ -85,7 +83,6 @@ class RCAB(nn.Module):
 class ResidualGroup(nn.Module):
     def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
         super(ResidualGroup, self).__init__()
-        modules_body = []
         modules_body = [
             RCAB(
                 conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
