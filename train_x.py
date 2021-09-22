@@ -14,7 +14,7 @@ import datasets
 from models import models
 import utils
 from test_x import eval
-from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss
+from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss, SSIMLoss
 
 
 def make_data_loader(spec, tag=''):
@@ -71,10 +71,10 @@ def train(train_loader, model, optimizer):
     model.train()
     loss_L1 = nn.L1Loss()
     train_loss = utils.Averager()
-    gan_loss = utils.Averager()
 
     criterion_char = CharbonnierLoss()
     criterion_edge = EdgeLoss()
+    criterion_ssim = SSIMLoss()
 
     train_dataset = config['train_dataset']
     inp_size = train_dataset['wrapper']['args']['inp_size']
@@ -90,6 +90,7 @@ def train(train_loader, model, optimizer):
     gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
 
     advloss = AdversarialLoss(gan_k=5, lr_dis=1e-4, train_crop_size=inp_size*scale)
+    gan_loss = utils.Averager()
 
     for batch in tqdm(train_loader, leave=False, desc='train'):
         for k, v in batch.items():
@@ -108,17 +109,19 @@ def train(train_loader, model, optimizer):
             save_image(predimg, f"vis/predimg.jpg", nrow=int(math.sqrt(bs)))
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
+        print(" ")
         loss_char = criterion_char(pred, gt)
-        #print(f"char: {loss_char}")
+        print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        #print(f"edge: {loss_edge}")
+        print(f"edge: {loss_edge}")
         #loss_adv = advloss(pred, gt)
         #print(f"adv: {loss_adv}")
+        loss_ssim = criterion_ssim(pred, gt)
+        print(f"ssim: {loss_ssim}")
 
-
-        loss = (loss_char) + (loss_edge) #+ (1e-3*loss_adv)
+        loss = (loss_char) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
         #loss = loss_L1(pred, gt)
-        #print(f"loss: {loss}")
+        print(f"loss: {loss}")
         train_loss.add(loss.item())
 
         optimizer.zero_grad()

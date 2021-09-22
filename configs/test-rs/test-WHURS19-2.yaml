@@ -2,7 +2,8 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: ./load/WHU-RS19/WHU-RS19-test
+      root_path: E:\Code\Python\datas\RS\WHU-RS19-test
+      #root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-test
   wrapper:
     name: sr-paired
     args:
