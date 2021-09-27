@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import MultiStepLR
+from torch.optim.lr_scheduler import MultiStepLR,CosineAnnealingLR
 from torchvision.utils import save_image
 import sys
 sys.path.append("models")
@@ -24,9 +24,9 @@ def make_data_loader(spec, tag=''):
     dataset = datasets.make(spec['dataset'])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
 
-    log('{} dataset: size={}'.format(tag, len(dataset)))
+    log(f'{tag} dataset: size={len(dataset)}')
     for k, v in dataset[0].items():
-        log('  {}: shape={}'.format(k, tuple(v.shape)))
+        log(f'  {k}: shape={tuple(v.shape)}')
 
     loader = DataLoader(dataset, batch_size=spec['batch_size'],
         shuffle=(tag == 'train'), num_workers=0, pin_memory=False)
@@ -46,24 +46,26 @@ def prepare_training():
         optimizer = utils.make_optimizer(model.parameters(), sv_file['optimizer'], load_sd=True)
         epoch_start = sv_file['epoch'] + 1
 
-        if config.get('multi_step_lr') is None:
-            lr_scheduler = None
-        else:
+        if config.get('multi_step_lr') is not None:
             lr_scheduler = MultiStepLR(optimizer, **config['multi_step_lr'])
-            #print(config['multi_step_lr'])
-        #for _ in range(epoch_start - 1):
-            #lr_scheduler.step()
+        elif config.get('cosine_annealing_lr') is not None:
+            lr_scheduler = CosineAnnealingLR(optimizer, **config['cosine_annealing_lr'])
+        else:
+            lr_scheduler = None
+
     else:
         model = models.make(config['model']).cuda()
         optimizer = utils.make_optimizer(model.parameters(), config['optimizer'])
         epoch_start = 1
 
-        if config.get('multi_step_lr') is None:
-            lr_scheduler = None
-        else:
+        if config.get('multi_step_lr') is not None:
             lr_scheduler = MultiStepLR(optimizer, **config['multi_step_lr'])
+        elif config.get('cosine_annealing_lr') is not None:
+            lr_scheduler = CosineAnnealingLR(optimizer, **config['cosine_annealing_lr'])
+        else:
+            lr_scheduler = None
 
-    log('model: #params={}'.format(utils.compute_num_params(model, text=True)))
+    log(f'model: #params={utils.compute_num_params(model, text=True)}')
     return model, optimizer, epoch_start, lr_scheduler
 
 
@@ -111,13 +113,13 @@ def train(train_loader, model, optimizer):
 
         print(" ")
         loss_char = criterion_char(pred, gt)
-        print(f"char: {loss_char}")
+        #print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        print(f"edge: {loss_edge}")
+        #print(f"edge: {loss_edge}")
         #loss_adv = advloss(pred, gt)
         #print(f"adv: {loss_adv}")
         loss_ssim = criterion_ssim(pred, gt)
-        print(f"ssim: {loss_ssim}")
+        #print(f"ssim: {loss_ssim}")
 
         loss = (loss_char) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
         #loss = loss_L1(pred, gt)
@@ -162,7 +164,7 @@ def main(config_, save_path):
         t_epoch_start = timer.t()
         log_info = ['epoch {}/{}'.format(epoch, epoch_max)]
 
-        #print(f"epoch--{epoch},lr--{optimizer.param_groups[0]['lr']}")
+        print(f"epoch--{epoch},lr--{optimizer.param_groups[0]['lr']}")
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
         train_loss = train(train_loader, model, optimizer)

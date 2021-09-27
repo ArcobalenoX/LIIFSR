@@ -25,6 +25,7 @@ class ImageFolder(Dataset):
         else:
             with open(split_file, 'r') as f:
                 filenames = json.load(f)[split_key]
+
         if first_k is not None:
             filenames = filenames[:first_k]
 

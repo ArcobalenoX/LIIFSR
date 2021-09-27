@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 import math
+from torchvision.models import vgg16
 
 from discriminator import Discriminator
-
 
 class CharbonnierLoss(nn.Module):
     """Charbonnier Loss (L1)"""
@@ -46,6 +46,37 @@ class EdgeLoss(nn.Module):
     def forward(self, x, y):
         loss = self.loss(self.laplacian_kernel(x), self.laplacian_kernel(y))
         return loss
+
+
+#Perceptual loss
+class PerceptualLoss(nn.Module):
+    def __init__(self, device='cuda'):
+        super().__init__()
+        self.vgg_layers = vgg16(pretrained=True).features[:16].to(device)
+        for param in self.vgg_layers.parameters():
+            param.requires_grad = False
+        self.layer_name_mapping = {
+            '3': "relu1_2",
+            '8': "relu2_2",
+            '15': "relu3_3"
+        }
+
+    def output_features(self, x):
+        output = {}
+        for name, module in self.vgg_layers._modules.items():
+            x = module(x)
+            if name in self.layer_name_mapping:
+                output[self.layer_name_mapping[name]] = x
+        return list(output.values())
+
+    def forward(self, x, y):
+        loss = []
+        x_features = self.output_features(x)
+        y_features = self.output_features(y)
+        for x_feature, y_feature in zip(x_features, y_features):
+            loss.append(F.mse_loss(x_feature, y_feature))
+
+        return sum(loss)/len(loss)
 
 
 class AdversarialLoss(nn.Module):
@@ -130,6 +161,8 @@ class AdversarialLoss(nn.Module):
 def gaussian(window_size, sigma):
     gauss = torch.Tensor([math.exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
     return gauss / gauss.sum()
+
+
 # 创建高斯核，通过两个一维高斯分布向量进行矩阵乘法得到
 # 可以设定channel参数拓展为3通道
 def create_window(window_size, channel=1):
@@ -193,6 +226,7 @@ def ssim(img1, img2, window_size=11, window=None, size_average=True, full=False,
     if full:
         return ret, cs
     return ret
+
 # Classes to re-use window
 class SSIMLoss(nn.Module):
     def __init__(self, window_size=11, size_average=True, val_range=None):
