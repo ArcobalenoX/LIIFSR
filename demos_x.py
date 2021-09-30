@@ -13,10 +13,9 @@ from test_x import batched_predict
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model')
-    parser.add_argument('--scale',default=2)
     parser.add_argument('--gpu', default='0')
-    parser.add_argument('--inputdir', default=r'E:\Code\Python\datas\RS\WHU-RS19-test\LR\x4')
-    parser.add_argument('--outputdir', default=r'testimg/WHURS19-DRSENMKCAx4')
+    parser.add_argument('--inputdir', default=r'E:\Code\Python\datas\RS\WHU-RS19-test\LR\x2')
+    parser.add_argument('--outputdir', default=r'testimg/WHURS19-DRSENMKCAX2')
     args = parser.parse_args()
     torch.cuda.empty_cache()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu

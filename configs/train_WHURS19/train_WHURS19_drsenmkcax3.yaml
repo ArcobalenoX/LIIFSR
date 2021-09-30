@@ -47,6 +47,7 @@ optimizer:
   name: adam
   args:
     lr: 1.e-4
+
 epoch_max: 500
 epoch_val: 1
 epoch_save: 100
