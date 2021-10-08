@@ -31,7 +31,10 @@ class ImageFolder(Dataset):
 
         self.files = []
         for filename in filenames:
-            file = os.path.join(root_path, filename)
+            if filename.endswith(".jpg") or filename.endswith(".png"):
+                file = os.path.join(root_path, filename)
+            else:
+                continue
 
             if cache == 'none':
                 self.files.append(file)
