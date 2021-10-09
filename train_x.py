@@ -162,10 +162,11 @@ def main(config_, save_path):
 
     for epoch in range(epoch_start, epoch_max + 1):
         t_epoch_start = timer.t()
-        log_info = ['epoch {}/{}'.format(epoch, epoch_max)]
+        log_info = [f'epoch {epoch}/{epoch_max}']
 
-        print(f"epoch--{epoch},lr--{optimizer.param_groups[0]['lr']}")
-        writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
+        lr = optimizer.param_groups[0]['lr']
+        #print(f"epoch--{epoch},lr--{lr}")
+        writer.add_scalar('lr', lr, epoch)
 
         train_loss = train(train_loader, model, optimizer)
         if lr_scheduler is not None:
@@ -213,7 +214,7 @@ def main(config_, save_path):
         prog = (epoch - epoch_start + 1) / (epoch_max - epoch_start + 1)
         t_epoch = utils.time_text(t - t_epoch_start)
         t_elapsed, t_all = utils.time_text(t), utils.time_text(t / prog)
-        log_info.append('{} {}/{}'.format(t_epoch, t_elapsed, t_all))
+        log_info.append(f'{t_epoch} {t_elapsed}/{t_all}')
 
         log(', '.join(log_info))
         writer.flush()
@@ -222,12 +223,12 @@ def main(config_, save_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config')
-    parser.add_argument('--name', default=None)
-    parser.add_argument('--tag', default=None)
+    parser.add_argument('--name', default='test')
     parser.add_argument('--gpu', default='0')
     args = parser.parse_args()
 
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
     torch.cuda.empty_cache()
 
     #载入配置文件的参数
@@ -239,8 +240,6 @@ if __name__ == '__main__':
     save_name = args.name
     if save_name is None:
         save_name = args.config.split('/')[-1][len('train_'):-len('.yaml')]
-    if args.tag is not None:
-        save_name += '_' + args.tag
     save_path = os.path.join('./save', save_name)
 
     main(config, save_path)

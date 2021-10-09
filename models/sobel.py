@@ -11,7 +11,7 @@ class SobelConv2d(nn.Module):
         assert out_channels % 4 == 0, 'SobelConv2d\'s out_channels must be a multiple of 4.'
         assert out_channels % groups == 0, 'SobelConv2d\'s out_channels must be a multiple of groups.'
 
-        super(SobelConv2d, self).__init__()
+        super().__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
