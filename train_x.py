@@ -69,7 +69,7 @@ def prepare_training():
     return model, optimizer, epoch_start, lr_scheduler
 
 
-def train(train_loader, model, optimizer):
+def train(train_loader, model, optimizer, loss):
     model.train()
     loss_L1 = nn.L1Loss()
     train_loss = utils.Averager()
@@ -83,6 +83,7 @@ def train(train_loader, model, optimizer):
     scale = train_dataset['wrapper']['args']['scale']
     bs = train_dataset['batch_size']
 
+
     data_norm = config['data_norm']
     t = data_norm['inp']
     inp_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
@@ -91,8 +92,6 @@ def train(train_loader, model, optimizer):
     gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
     gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
 
-    advloss = AdversarialLoss(gan_k=5, lr_dis=1e-4, train_crop_size=inp_size*scale)
-    gan_loss = utils.Averager()
 
     for batch in tqdm(train_loader, leave=False, desc='train'):
         for k, v in batch.items():
@@ -111,13 +110,11 @@ def train(train_loader, model, optimizer):
             save_image(predimg, f"vis/predimg.jpg", nrow=int(math.sqrt(bs)))
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
-        print(" ")
+
         loss_char = criterion_char(pred, gt)
         #print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
         #print(f"edge: {loss_edge}")
-        #loss_adv = advloss(pred, gt)
-        #print(f"adv: {loss_adv}")
         loss_ssim = criterion_ssim(pred, gt)
         #print(f"ssim: {loss_ssim}")
 
@@ -168,7 +165,9 @@ def main(config_, save_path):
         #print(f"epoch--{epoch},lr--{lr}")
         writer.add_scalar('lr', lr, epoch)
 
-        train_loss = train(train_loader, model, optimizer)
+        loss = nn.L1Loss()
+        train_loss = train(train_loader, model, optimizer , loss)
+
         if lr_scheduler is not None:
             lr_scheduler.step()
 
@@ -199,9 +198,7 @@ def main(config_, save_path):
                 model_ = model.module
             else:
                 model_ = model
-            val_psnr, val_ssim = eval(val_loader, model_,
-                data_norm=config['data_norm'],
-                eval_type=config.get('eval_type'))
+            val_psnr, val_ssim = eval(val_loader, model_, data_norm=config['data_norm'])
 
             log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
             writer.add_scalars('psnr', {'val': val_psnr}, epoch)
