@@ -11,9 +11,9 @@ train_dataset:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 3
       augment: true
-  batch_size: 40
+  batch_size: 10
 
 val_dataset:
   dataset:
@@ -29,7 +29,7 @@ val_dataset:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 3
   batch_size: 10
 
 
@@ -40,7 +40,7 @@ data_norm:
 model:
   name: edsr
   args:
-    scale: 2
+    scale: 3
     no_upsampling: false
 
 

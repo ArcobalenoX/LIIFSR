@@ -1,6 +1,5 @@
 import argparse
 import os
-from functools import partial
 import yaml
 import math
 import torch
@@ -16,12 +15,13 @@ import utils
 
 
 def batched_predict(model, inp):
+    model.eval()
     with torch.no_grad():
         pred = model(inp)
     return pred
 
 
-def eval(loader, model, data_norm=None, eval_type=None, verbose=False):
+def eval(loader, model, data_norm=None, verbose=False):
     model.eval()
     if data_norm is None:
         data_norm = {
@@ -36,17 +36,6 @@ def eval(loader, model, data_norm=None, eval_type=None, verbose=False):
     gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
     gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
 
-    if eval_type is None:
-        metric_fn = utils.calc_psnr
-    elif eval_type.startswith('div2k'):
-        scale = int(eval_type.split('-')[1])
-        metric_fn = partial(utils.calc_psnr, dataset='div2k', scale=scale)
-    elif eval_type.startswith('benchmark'):
-        scale = int(eval_type.split('-')[1])
-        metric_fn = partial(utils.calc_psnr, dataset='benchmark', scale=scale)
-    else:
-        raise NotImplementedError
-
     max_psnr = 0
     max_ssim = 0
 
@@ -59,11 +48,11 @@ def eval(loader, model, data_norm=None, eval_type=None, verbose=False):
             batch[k] = v.cuda()
         inp = (batch['inp'] - inp_sub) / inp_div
 
-        with torch.no_grad():
-            pred = batched_predict(model, inp)
-            pred = (pred * gt_div + gt_sub).clamp_(0, 1)
 
-        psnr = metric_fn(pred, batch['gt'])
+        pred = batched_predict(model,inp)
+        pred = (pred * gt_div + gt_sub).clamp_(0, 1)
+
+        psnr = utils.calc_psnr(pred, batch['gt'])
         val_psnr.add(psnr.item(), inp.shape[0])
 
         ssim = utils.ssim(pred, batch['gt'])
@@ -101,8 +90,7 @@ if __name__ == '__main__':
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
-    loader = DataLoader(dataset, batch_size=spec['batch_size'],
-        num_workers=0, pin_memory=True)
+    loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 
     sv_file = torch.load(args.model)
     print(f'epoch——{sv_file["epoch"]}')
@@ -110,8 +98,5 @@ if __name__ == '__main__':
     model_spec = torch.load(args.model)['model']
     model = models.make(model_spec, load_sd=True).cuda()
 
-    res,ssim= eval(loader, model,
-        data_norm=config.get('data_norm'),
-        eval_type=config.get('eval_type'),
-        verbose=True)
-    print(f'result: psnr={res:.4f} ssim={ssim:.4f}')
+    psnr,ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')

@@ -7,8 +7,7 @@ from torchvision import transforms
 import sys
 sys.path.append("models")
 from models import models
-from test_x import batched_predict
-
+from demo_x import single_image
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -25,21 +24,18 @@ if __name__ == '__main__':
     if os.path.exists(outputdir)==False:
         os.makedirs(outputdir)
 
-    for imgs in os.listdir(inputdir):
+    model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
+
+    for imgname in os.listdir(inputdir):
         st = time.time()
-
-        imgpath = os.path.join(inputdir, imgs)
-        img = transforms.ToTensor()(Image.open(imgpath)).cuda()
-        model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
-        bimg =((img - 0.5) / 0.5).cuda().unsqueeze(0)
-        pred = batched_predict(model, bimg)[0]
-        pred = (pred * 0.5 + 0.5).clamp(0, 1).cpu()
-
-        outputpath = os.path.join(outputdir, imgs).replace(".jpg", ".png")
+        imgpath = os.path.join(inputdir, imgname)
+        img = Image.open(imgpath)
+        pred = single_image(model, img)
+        outputpath = os.path.join(outputdir, imgname)
+        #outputpath = outputpath.replace(".jpg", ".png")
         transforms.ToPILImage()(pred).save(outputpath)
-
         et = time.time()
-        print(f"{imgs} spend time {(et-st):.3f}s")
+        print(f"{imgname} spend time {(et-st):.3f}s")
 
 
 
