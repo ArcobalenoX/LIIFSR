@@ -6,8 +6,7 @@ from argparse import Namespace
 import utils
 from models import register
 
-from CoordAtt import CoordAtt
-from common import default_conv, Upsampler
+from common import default_conv, Upsampler, CoordAtt
 
 
 class RMK(nn.Module):
