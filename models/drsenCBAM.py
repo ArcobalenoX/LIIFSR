@@ -5,8 +5,8 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import default_conv, Upsampler
-from CBAM import CBAM
+from common import default_conv, Upsampler, CBAM
+
 
 
 class ResBlock(nn.Module):
