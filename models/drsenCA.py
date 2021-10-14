@@ -5,8 +5,7 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import default_conv, Upsampler
-from CoordAtt import CoordAtt
+from common import default_conv, Upsampler, CoordAtt
 
 
 class ResBlock(nn.Module):
