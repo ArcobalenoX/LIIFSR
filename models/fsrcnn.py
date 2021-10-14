@@ -36,11 +36,8 @@ class FSRCNN_net(nn.Module):
 
     def forward(self, x):
         fea = self.head_conv(x)
-        print(fea.shape)
         fea = self.body_conv(fea)
-        print(fea.shape)
         out = self.tail_conv(fea)
-        print(out.shape)
         return out
 
 

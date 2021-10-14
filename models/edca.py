@@ -5,7 +5,7 @@ from argparse import Namespace
 
 import utils
 from models import register
-from OutlookAttention import OutlookAttention
+
 from CoordAtt import CoordAtt
 from common import default_conv, SELayer, Upsampler
 

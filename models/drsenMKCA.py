@@ -5,8 +5,7 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import default_conv, Upsampler
-from CoordAtt import CoordAtt
+from common import default_conv, Upsampler, CoordAtt
 
 
 class ResBlock(nn.Module):
@@ -16,9 +15,9 @@ class ResBlock(nn.Module):
         self.brb_1x3 = nn.Conv2d(n_feats, n_feats, kernel_size=(1, 3), padding=(0, 1))
         self.brb_3x1 = nn.Conv2d(n_feats, n_feats, kernel_size=(3, 1), padding=(1, 0))
         self.brb_1x1 = nn.Conv2d(n_feats, n_feats, kernel_size=1, padding=0)
-        self.conv1 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
+        self.conv1 = nn.Conv2d(n_feats, n_feats, 3, padding=(3 // 2))
         self.act1 = nn.ReLU(True)
-        self.conv2 = nn.Conv2d(n_feats, n_feats, 3, padding=(3//2))
+        self.conv2 = nn.Conv2d(n_feats, n_feats, 3, padding=(3 // 2))
         self.act2 = nn.ReLU(True)
         self.att = CoordAtt(n_feats, n_feats, 4)
 
@@ -32,7 +31,7 @@ class ResBlock(nn.Module):
         x2 = self.act1(xm)
         x3 = self.conv2(x2)
         x4 = self.att(x2)
-        y = x1+x3+x4
+        y = x1 + x3 + x4
         y = self.act2(y)
         return y
 
@@ -47,7 +46,7 @@ class DRSENMKCA(nn.Module):
         scale = args.scale
         act = nn.ReLU(True)
 
-        #define identity branch
+        # define identity branch
         m_identity = []
         m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=False))
         self.identity = nn.Sequential(*m_identity)
@@ -65,7 +64,7 @@ class DRSENMKCA(nn.Module):
     def forward(self, x):
         inp = self.identity(x)
         res = self.residual(x)
-        y = res+inp
+        y = res + inp
         return y
 
     def load_state_dict(self, state_dict, strict=True):
@@ -82,6 +81,7 @@ class DRSENMKCA(nn.Module):
                                         and whose dimensions in the checkpoint are "{param.size()}".')
             elif strict:
                 raise KeyError(f'unexpected key "{name}" in state_dict')
+
 
 @register('drsenmkca')
 def make_drsenmkca(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
@@ -102,4 +102,3 @@ if __name__ == '__main__':
     param_nums = utils.compute_num_params(model)
     print(param_nums)
     print(y.shape)
-
