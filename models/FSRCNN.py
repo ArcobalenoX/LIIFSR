@@ -31,14 +31,16 @@ class FSRCNN_net(nn.Module):
         self.body_conv = torch.nn.Sequential(*self.layers)
 
         # Deconvolution
-        self.tail_conv = nn.ConvTranspose2d(in_channels=d, out_channels=input_channels, kernel_size=9,
-                                            stride=upscale, padding=3, output_padding=1)
+        self.tail_conv = nn.ConvTranspose2d(in_channels=d, out_channels=input_channels, kernel_size=upscale,
+                                            stride=upscale, padding=0)
 
     def forward(self, x):
         fea = self.head_conv(x)
+        print(fea.shape)
         fea = self.body_conv(fea)
         print(fea.shape)
         out = self.tail_conv(fea)
+        print(out.shape)
         return out
 
 
@@ -54,10 +56,10 @@ def make_fsrcnn(input_channels=3, scale=2, d=64, s=12, m=4):
 
 
 if __name__ == '__main__':
-    x = torch.rand(1, 3, 128, 128)
-    model = make_fsrcnn(input_channels=3, scale=2)
+    x = torch.rand(1, 3, 96, 96)
+    model = make_fsrcnn(input_channels=3, scale=3)
     y = model(x)
-    print(model)
+    #print(model)
     print(y.shape)
     print("param_nums:", compute_num_params(model,True))
 
