@@ -2,11 +2,10 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: E:\Code\Python\datas\selfWHURS\WHURS19-train\Beach
-      #root_path: /home/ww020823/yxc/dataset/selfWHURS/WHU-RS19-train/Beach
-      repeat: 10
-      #cache: in_memory
-      cache: none
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-train
+      repeat: 1
+      cache: in_memory
+      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -19,12 +18,10 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: E:\Code\Python\datas\selfWHURS\WHURS19-test\Beach
-      #root_path: /home/ww020823/yxc/dataset/selfWHURS/WHU-RS19-test/Beach
-      first_k: 10
-      repeat: 10
-      #cache: in_memory
-      cache: none
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-test
+      repeat: 1
+      cache: in_memory
+      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -37,11 +34,12 @@ data_norm:
   inp: {sub: [0.5], div: [0.5]}
   gt: {sub: [0.5], div: [0.5]}
 
+
 model:
-  name: edsr
+  name: drsens
   args:
+    upsampling: true
     scale: 2
-    no_upsampling: false
 
 
 optimizer:
