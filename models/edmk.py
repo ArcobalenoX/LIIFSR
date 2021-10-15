@@ -3,10 +3,9 @@ import torch
 import torch.nn as nn
 from argparse import Namespace
 
-import utils
 from models import register
 
-from common import default_conv, Upsampler, CoordAtt
+from common import compute_num_params,default_conv, Upsampler, CoordAtt
 
 
 class RMK(nn.Module):
@@ -108,7 +107,7 @@ if __name__ == '__main__':
     model = make_edmk(upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = compute_num_params(model)
     print(param_nums)
     print(y.shape)
 

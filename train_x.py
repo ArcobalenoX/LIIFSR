@@ -220,7 +220,7 @@ def main(config_, save_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config')
-    parser.add_argument('--name', default='test')
+    parser.add_argument('--name')
     parser.add_argument('--gpu', default='0')
     args = parser.parse_args()
 
@@ -231,12 +231,12 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-        print('config loaded.')
+        print(config)
 
     #保存的checkpoint路径
     save_name = args.name
     if save_name is None:
         save_name = args.config.split('/')[-1][len('train_'):-len('.yaml')]
-    save_path = os.path.join('./save', save_name)
+    save_path = os.path.join('save', save_name)
 
     main(config, save_path)

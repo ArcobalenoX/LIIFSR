@@ -32,7 +32,8 @@ if __name__ == '__main__':
         img = Image.open(imgpath)
         pred = single_image(model, img)
         outputpath = os.path.join(outputdir, imgname)
-        #outputpath = outputpath.replace(".jpg", ".png")
+        if outputpath.endswith("jpg"):
+            outputpath = outputpath.replace(".jpg", ".png")
         transforms.ToPILImage()(pred).save(outputpath)
         et = time.time()
         print(f"{imgname} spend time {(et-st):.3f}s")

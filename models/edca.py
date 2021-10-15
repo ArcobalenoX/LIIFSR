@@ -3,10 +3,8 @@ import torch
 import torch.nn as nn
 from argparse import Namespace
 
-import utils
 from models import register
-
-from common import default_conv, SELayer, Upsampler, CoordAtt
+from common import compute_num_params, default_conv, SELayer, Upsampler, CoordAtt
 
 
 class ResBlock(nn.Module):
@@ -52,7 +50,6 @@ class EDCA(nn.Module):
         for _ in range(n_resblocks):
             m_body.append(ResBlock(n_feats, IN=True, res_scale=args.res_scale) )
             m_body.append(CoordAtt(n_feats, n_feats, 32))
-            m_body.append(OutlookAttention(n_feats))
         self.body = nn.Sequential(*m_body)
 
         if args.upsampling:
@@ -116,7 +113,7 @@ if __name__ == '__main__':
     model = make_edca(upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = compute_num_params(model)
     print(param_nums)
     print(y.shape)
 
