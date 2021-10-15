@@ -3,9 +3,8 @@ train_dataset:
     name: image-folder
     args:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-train
-      repeat: 1
+      repeat: 10
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -19,9 +18,8 @@ val_dataset:
     name: image-folder
     args:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-test
-      repeat: 1
+      repeat: 10
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
