@@ -2,11 +2,9 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-train
       repeat: 1
-      #cache: in_memory
-      cache: none
+      cache: in_memory
   wrapper:
     name: sr-paired
     args:
@@ -19,11 +17,9 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\WHU-RS19-test
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-test
-      repeat: 1
-      #cache: in_memory
-      cache: none
+      repeat: 10
+      cache: in_memory
   wrapper:
     name: sr-paired
     args:

@@ -2,11 +2,9 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-train
-      repeat: 1
+      repeat: 10
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -19,11 +17,9 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\WHU-RS19-test
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-test
-      repeat: 1
+      repeat: 10
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -42,7 +38,6 @@ model:
     scale: 2
 
 
-
 optimizer:
   name: adam
   args:
@@ -50,6 +45,7 @@ optimizer:
 epoch_max: 500
 epoch_val: 1
 epoch_save: 100
+
 multi_step_lr:
   milestones: [100, 200, 300, 400]
   gamma: 0.5

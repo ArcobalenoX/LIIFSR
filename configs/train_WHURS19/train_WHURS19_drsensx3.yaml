@@ -2,35 +2,30 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_train_patch
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-train
       repeat: 10
-      #cache: in_memory
-      cache: none
+      cache: in_memory
   wrapper:
     name: sr-paired
     args:
       inp_size: 48
       scale: 3
       augment: true
-  batch_size: 64
+  batch_size: 100
 
 val_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\ITCVD_patch\ITCVD_test_patch
       root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-test
-      first_k: 10
-      repeat: 1
-      #cache: in_memory
-      cache: none
+      repeat: 10
+      cache: in_memory
   wrapper:
     name: sr-paired
     args:
       inp_size: 48
       scale: 3
-  batch_size: 8
+  batch_size: 10
 
 
 data_norm:

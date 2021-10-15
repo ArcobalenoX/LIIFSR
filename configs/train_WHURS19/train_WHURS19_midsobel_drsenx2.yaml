@@ -5,7 +5,6 @@ train_dataset:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-train
       repeat: 1
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
@@ -21,7 +20,6 @@ val_dataset:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-test
       repeat: 1
       cache: in_memory
-      #cache: none
   wrapper:
     name: sr-paired
     args:
