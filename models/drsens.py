@@ -33,11 +33,12 @@ class DRSEN(nn.Module):
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
         scale = args.scale
-        act = nn.ReLU(True)
+        #act = nn.ReLU(True)
+        act = "prelu"
 
         #define identity branch
         m_identity = []
-        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.identity = nn.Sequential(*m_identity)
 
         # define residual branch
@@ -46,7 +47,7 @@ class DRSEN(nn.Module):
         for _ in range(n_resblocks):
             m_residual.append(RSEB(n_feats))
         m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
-        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.residual = nn.Sequential(*m_residual)
 
         self.out_dim = args.n_colors
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     model = make_drsen(upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = utils.compute_num_params(model,True)
     print(param_nums)
     print(y.shape)
 
