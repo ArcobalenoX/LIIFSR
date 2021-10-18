@@ -33,8 +33,8 @@ class DRSEN(nn.Module):
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
         scale = args.scale
-        #act = nn.ReLU(True)
-        act = "prelu"
+        act = False
+        #act = "prelu"
 
         #define identity branch
         m_identity = []

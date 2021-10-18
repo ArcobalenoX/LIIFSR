@@ -2,13 +2,12 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      #root_path: E:\Code\Python\datas\RS\WHU-RS19-test\GT
       root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-test
   wrapper:
     name: sr-paired
     args:
       scale: 2
-  batch_size: 1
+  batch_size: 10
 
 data_norm:
   inp: {sub: [0.5], div: [0.5]}
