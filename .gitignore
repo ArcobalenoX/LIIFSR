@@ -12,4 +12,5 @@ save/*/tensorboard
 *.jpg
 *.png
 *.pth
+*.mp4
 
