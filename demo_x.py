@@ -12,9 +12,7 @@ from test_x import batched_predict
 
 
 def single_image(model, img):
-    #img = transforms.Resize((int(img.height/2),int(img.width/2)),Image.BICUBIC)(img)
-    timg = transforms.ToTensor()(img) #[3,LR_H,LR_W]
-    bimg = ((timg - 0.5) / 0.5).cuda().unsqueeze(0)
+    bimg = ((img - 0.5) / 0.5).cuda().unsqueeze(0)
     pred = batched_predict(model, bimg)[0] #[1,SR_H*SR_W,3]
     pred = (pred * 0.5 + 0.5).clamp(0, 1).cpu()
     return pred
@@ -34,6 +32,8 @@ if __name__ == '__main__':
 
     st = time.time()
     img = Image.open(args.lr)
+    #img = transforms.Resize((int(img.height/2),int(img.width/2)),Image.BICUBIC)(img)
+    img = transforms.ToTensor()(img) #[3,LR_H,LR_W]
     pred = single_image(model, img)
     transforms.ToPILImage()(pred).save(args.sr)
     et = time.time()

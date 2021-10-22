@@ -23,11 +23,10 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', default='0')
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
 
     st = time.time()
     img = transforms.ToTensor()(Image.open(args.input)) #[3,LR_H,LR_W]
-    model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
-
     h, w = list(map(int, args.resolution.split(',')))
     h, w = img.shape[-2]*args.scale, img.shape[-1]*args.scale
     coord = make_coord((h, w)).cuda() #[SR_H*SR_W,2] 左上角[-1,-1]-右下角[1,1]
@@ -46,4 +45,4 @@ if __name__ == '__main__':
     transforms.ToPILImage()(pred).save(args.output)
     et=time.time()
 
-    print(f"{input} spend time {(et-st):.3f}s")
+    print(f"{args.input} spend time {(et-st):.3f}s")

@@ -21,6 +21,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     torch.cuda.empty_cache()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
 
     inputdir = args.inputdir
     outputdir = args.outputdir
@@ -33,7 +34,7 @@ if __name__ == '__main__':
 
         imgpath = os.path.join(inputdir, imgs)
         img = transforms.ToTensor()(Image.open(imgpath))
-        model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
+
         h, w = img.shape[1]*args.scale, img.shape[2]*args.scale
         coord = make_coord((h, w)).cuda()
         cell = torch.ones_like(coord)
