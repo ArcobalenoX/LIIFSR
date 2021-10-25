@@ -3,7 +3,7 @@ train_dataset:
     name: image-folder
     args:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-cross-train
-      repeat: 4
+      repeat: 10
       cache: in_memory
   wrapper:
     name: sr-paired
@@ -17,8 +17,8 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-cross-test
-      repeat: 4
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-test
+      repeat: 1
       cache: in_memory
 
   wrapper:

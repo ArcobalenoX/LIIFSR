@@ -3,7 +3,7 @@ train_dataset:
     name: image-folder
     args:
       root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-nocross-train
-      repeat: 4
+      repeat: 15
       cache: in_memory
   wrapper:
     name: sr-paired

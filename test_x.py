@@ -78,7 +78,6 @@ if __name__ == '__main__':
     parser.add_argument('--model')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--save_sr', default=False)
-    parser.add_argument('--outputdir', default=r'testimg/div2kx8x8')
 
     args = parser.parse_args()
 
