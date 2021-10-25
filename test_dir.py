@@ -23,8 +23,6 @@ if __name__ == '__main__':
     parser.add_argument('--hrdir', default=r'E:\Code\Python\datas\RS\WHU-RS19-test\GT')
     args = parser.parse_args()
 
-
-
     lrdir = args.lrdir
     hrdir = args.hrdir
     srdir = args.srdir
@@ -33,7 +31,7 @@ if __name__ == '__main__':
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
 
-    csv_path = srdir + '\\' + args.model.split('\\')[1] + ".csv"
+    csv_path = srdir + '\\' + args.model.split('/')[1] + ".csv"
     print(csv_path)
 
     with open(csv_path, mode='w', newline='') as f:
@@ -42,6 +40,7 @@ if __name__ == '__main__':
 
             lrpath = os.path.join(lrdir, imgname)
             lr = Image.open(lrpath)
+            lr = transforms.Resize((int(lr.height / 2), int(lr.width / 2)), Image.BICUBIC)(lr)
             lr = transforms.ToTensor()(lr) #[3,H,W]       
 
             hrpath = os.path.join(hrdir, imgname)

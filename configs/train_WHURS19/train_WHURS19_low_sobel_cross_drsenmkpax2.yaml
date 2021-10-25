@@ -2,8 +2,8 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-nocross-train
-      repeat: 15
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-cross-train
+      repeat: 10
       cache: in_memory
   wrapper:
     name: sr-paired
@@ -17,8 +17,8 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-nocross-test
-      repeat: 4
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-test
+      repeat: 1
       cache: in_memory
 
   wrapper:
@@ -34,10 +34,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: edsr-baseline
+  name: drsenmkpa
   args:
     scale: 2
-    no_upsampling: false
+    upsampling: true
 
 
 optimizer:
