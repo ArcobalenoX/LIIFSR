@@ -120,7 +120,7 @@ def train(train_loader, model, optimizer, loss):
 
         loss = (loss_char) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
         #loss = loss_L1(pred, gt)
-        print(f"loss: {loss}")
+        #print(f"loss: {loss}")
         train_loss.add(loss.item())
 
         optimizer.zero_grad()
