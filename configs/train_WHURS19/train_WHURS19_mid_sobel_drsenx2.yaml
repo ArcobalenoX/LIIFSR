@@ -34,7 +34,7 @@ data_norm:
 
 
 model:
-  name: drsens
+  name: drsen
   args:
     upsampling: true
     scale: 2
