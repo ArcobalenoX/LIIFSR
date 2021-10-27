@@ -49,7 +49,6 @@ class DRSEN(nn.Module):
         m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
         m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.residual = nn.Sequential(*m_residual)
-
         self.out_dim = args.n_colors
 
     def forward(self, x):
@@ -73,7 +72,7 @@ class DRSEN(nn.Module):
             elif strict:
                 raise KeyError(f'unexpected key "{name}" in state_dict')
 
-@register('drsens')
+@register('drsen')
 def make_drsen(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
     args = Namespace()
     args.n_resblocks = n_resblocks
@@ -86,7 +85,7 @@ def make_drsen(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
-    model = make_drsen(upsampling=True, scale=2)
+    model = make_drsen(upsampling=True, scale=4)
     y = model(x)
     print(model)
     param_nums = utils.compute_num_params(model,True)

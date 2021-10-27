@@ -2,29 +2,30 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-train
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-cross-train
       repeat: 10
       cache: in_memory
   wrapper:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 4
       augment: true
-  batch_size: 10
+  batch_size: 40
 
 val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-test
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-test
       repeat: 1
       cache: in_memory
+
   wrapper:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 4
   batch_size: 10
 
 
@@ -32,12 +33,11 @@ data_norm:
   inp: {sub: [0.5], div: [0.5]}
   gt: {sub: [0.5], div: [0.5]}
 
-
 model:
   name: drsen
   args:
+    scale: 4
     upsampling: true
-    scale: 2
 
 
 optimizer:
