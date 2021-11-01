@@ -99,7 +99,7 @@ if __name__ == '__main__':
     model = make_drsenmkpa(upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = utils.compute_num_params(model,True)
     print(param_nums)
     print(y.shape)
 

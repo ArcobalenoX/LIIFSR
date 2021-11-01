@@ -4,10 +4,11 @@ import os
 import yaml
 import torch
 import torch.nn as nn
-from tqdm import tqdm
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR,CosineAnnealingLR
 from torchvision.utils import save_image
+from tqdm import tqdm
 import sys
 sys.path.append("models")
 import datasets
@@ -110,17 +111,22 @@ def train(train_loader, model, optimizer, loss):
             save_image(predimg, f"vis/predimg.jpg", nrow=int(math.sqrt(bs)))
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
+        predx2 = F.interpolate(pred, scale_factor=2, mode='bicubic')
+        gtx2 = F.interpolate(gt, scale_factor=2, mode='bicubic')
+
+        loss_charx2 = criterion_char(predx2,gtx2)
+        print(f"charx2: {loss_charx2}")
 
         loss_char = criterion_char(pred, gt)
-        #print(f"char: {loss_char}")
+        print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        #print(f"edge: {loss_edge}")
+        print(f"edge: {loss_edge}")
         loss_ssim = criterion_ssim(pred, gt)
-        #print(f"ssim: {loss_ssim}")
+        print(f"ssim: {loss_ssim}")
 
-        loss = (loss_char) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
+        loss = (loss_char) + (loss_charx2) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
         #loss = loss_L1(pred, gt)
-        #print(f"loss: {loss}")
+        print(f"loss: {loss}")
         train_loss.add(loss.item())
 
         optimizer.zero_grad()

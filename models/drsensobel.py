@@ -6,7 +6,6 @@ from argparse import Namespace
 import utils
 from models import register
 from common import default_conv, Upsampler
-
 from sobel import SobelConv2d
 
 class ResBlock(nn.Module):
@@ -16,7 +15,7 @@ class ResBlock(nn.Module):
         self.act1 = nn.ReLU(True)
         self.conv2 = SobelConv2d(n_feats, n_feats, 3, padding=(3//2))
         self.conv3 = SobelConv2d(n_feats*3, n_feats, 1, padding=(1//2))
-        #self.att = CoordAtt(n_feats, n_feats, 8)
+
 
     def forward(self, x):
         x1 = x
@@ -90,12 +89,10 @@ def make_drsensobel(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
-    #x = x.cuda()
-    model = make_drsensobel(upsampling=True, scale=2)
-    #model = model.cuda()
+    model = make_drsensobel(n_resblocks=20, n_feats=32,upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = utils.compute_num_params(model,True)
     print(param_nums)
     print(y.shape)
 
