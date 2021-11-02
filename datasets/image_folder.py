@@ -11,6 +11,8 @@ from torchvision import transforms
 
 from datasets import register
 
+def is_image_file(filename):
+    return any(filename.endswith(extension) for extension in ['jpeg', 'JPEG', 'jpg', 'png', 'JPG', 'PNG', 'gif'])
 
 @register('image-folder')
 class ImageFolder(Dataset):
@@ -89,3 +91,46 @@ class PairedImageFolders(Dataset):
 
     def __getitem__(self, idx):
         return self.dataset_1[idx], self.dataset_2[idx]
+
+
+
+@register('imageL0-folder')
+class ImageFolder(Dataset):
+
+    def __init__(self, hr_dir, L0_dir, repeat=1, cache='none'):
+        self.repeat = repeat
+        self.cache = cache
+        image_names = sorted(os.listdir(hr_dir))
+        self.files = []
+        self.L0S=[]
+        for hr_name in image_names:
+            if is_image_file(hr_name):
+                file = os.path.join(hr_dir, hr_name)
+                L0 = os.path.join(L0_dir, hr_name)
+            else:
+                continue
+
+            if cache == 'none':
+                self.files.append(file)
+                self.L0S.append(L0)
+
+            elif cache == 'in_memory':
+                self.files.append(transforms.ToTensor()(
+                    Image.open(file).convert('RGB')))
+                self.L0S.append(transforms.ToTensor()(
+                    Image.open(L0).convert('RGB')))
+
+    def __len__(self):
+        return len(self.files) * self.repeat
+
+    def __getitem__(self, idx):
+        x = self.files[idx % len(self.files)]
+        l = self.L0S[idx % len(self.files)]
+
+        if self.cache == 'none':
+            xt = transforms.ToTensor()(Image.open(x).convert('RGB'))
+            lt = transforms.ToTensor()(Image.open(l).convert('RGB'))
+            return xt, lt
+
+        elif self.cache == 'in_memory':
+            return x,l

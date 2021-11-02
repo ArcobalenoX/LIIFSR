@@ -252,3 +252,57 @@ class SRDownsampled(Dataset):
             'inp': crop_lr,
             'gt': crop_hr
         }
+
+
+
+@register('LO-wrappers')
+class SRDownsampled(Dataset):
+    def __init__(self, dataset, inp_size=None, scale=2,augment=False):
+        self.dataset = dataset
+        self.inp_size = inp_size
+        self.scale = scale
+        self.augment = augment
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        img,ls = self.dataset[idx]
+        s = self.scale
+
+        if self.inp_size is None:
+            h_lr = math.floor(img.shape[-2] / s + 1e-9)
+            w_lr = math.floor(img.shape[-1] / s + 1e-9)
+            img = img[:, :round(h_lr * s), :round(w_lr * s)] # assume round int
+            img_down = resize_fn(img, (h_lr, w_lr))
+            crop_lr, crop_hr = img_down, img
+        else:
+            w_lr = self.inp_size
+            w_hr = round(w_lr * s)
+            x0 = random.randint(0, img.shape[-2] - w_hr)
+            y0 = random.randint(0, img.shape[-1] - w_hr)
+            crop_hr = img[:, x0: x0 + w_hr, y0: y0 + w_hr]
+            crop_ls = ls[:, x0: x0 + w_hr, y0: y0 + w_hr]
+            crop_lr = resize_fn(crop_hr, w_lr)
+            crop_ls = resize_fn(crop_ls, w_lr)
+
+        if self.augment:
+            hflip = random.random() < 0.5
+            vflip = random.random() < 0.5
+            dflip = random.random() < 0.5
+            def augment(x):
+                if hflip:
+                    x = x.flip(-2)
+                if vflip:
+                    x = x.flip(-1)
+                if dflip:
+                    x = x.transpose(-2, -1)
+                return x
+            crop_lr = augment(crop_lr)
+            crop_hr = augment(crop_hr)
+            crop_ls = augment(crop_ls)
+        return {
+            'lr': crop_lr,
+            'ls': crop_ls,
+            'gt': crop_hr
+        }

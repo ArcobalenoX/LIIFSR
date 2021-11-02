@@ -243,10 +243,6 @@ class UpSample(nn.Module):
         return x
 
 
-import torch
-import torch.nn as nn
-
-
 class ChannelAttention(nn.Module):
     def __init__(self, in_planes, ratio=8):
         super(ChannelAttention, self).__init__()
