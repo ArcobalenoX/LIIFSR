@@ -2,10 +2,8 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      #hr_dir: /home/ww020823/yxc/dataset/selfWHURS/WHURS19-train-hr
-      #L0_dir: /home/ww020823/yxc/dataset/selfWHURS/WHURS19-train-l0
-      hr_dir: E:\Code\Python\datas\RS\WHU-RS19-train\GT
-      L0_dir: E:\Code\Python\iPython\wavelet\smooth_whurs
+      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
+      L0_dir: /home/ww020823/yxc/dataset/smooth_whurs_train_grad
       repeat: 1
       cache: none
   wrapper:
@@ -20,8 +18,8 @@ val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: E:\Code\Python\datas\RS\WHU-RS19-train\GT
-      L0_dir: E:\Code\Python\iPython\wavelet\smooth_whurs
+      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
+      L0_dir: /home/ww020823/yxc/dataset/smooth_whurs_test_grad
       repeat: 1
       cache: none
   wrapper:
@@ -38,7 +36,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0SmoothSR
+  name: L0Smoothsam
   args:
     scale: 2
     upsampling: True

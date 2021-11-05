@@ -208,7 +208,7 @@ def conv(in_channels, out_channels, kernel_size, bias=False, stride = 1):
 ## Supervised Attention Module
 class SAM(nn.Module):
     def __init__(self, n_feat, kernel_size, bias):
-        super(SAM, self).__init__()
+        super().__init__()
         self.conv1 = conv(n_feat, n_feat, kernel_size, bias=bias)
         self.conv2 = conv(n_feat, 3, kernel_size, bias=bias)
         self.conv3 = conv(3, n_feat, kernel_size, bias=bias)
@@ -224,7 +224,7 @@ class SAM(nn.Module):
 ##---------- Resizing Modules ----------
 class DownSample(nn.Module):
     def __init__(self, in_channels,s_factor):
-        super(DownSample, self).__init__()
+        super().__init__()
         self.down = nn.Sequential(nn.Upsample(scale_factor=0.5, mode='bilinear', align_corners=False),
                                   nn.Conv2d(in_channels, in_channels+s_factor, 1, stride=1, padding=0, bias=False))
 
@@ -234,7 +234,7 @@ class DownSample(nn.Module):
 
 class UpSample(nn.Module):
     def __init__(self, in_channels,s_factor):
-        super(UpSample, self).__init__()
+        super().__init__()
         self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
                                 nn.Conv2d(in_channels+s_factor, in_channels, 1, stride=1, padding=0, bias=False))
 
@@ -245,7 +245,7 @@ class UpSample(nn.Module):
 
 class ChannelAttention(nn.Module):
     def __init__(self, in_planes, ratio=8):
-        super(ChannelAttention, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.fc1 = nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False)
@@ -315,7 +315,7 @@ class SpatialPixelAttention(nn.Module):
 
 class h_sigmoid(nn.Module):
     def __init__(self, inplace=True):
-        super(h_sigmoid, self).__init__()
+        super().__init__()
         self.relu = nn.ReLU6(inplace=inplace)
 
     def forward(self, x):
@@ -324,7 +324,7 @@ class h_sigmoid(nn.Module):
 
 class h_swish(nn.Module):
     def __init__(self, inplace=True):
-        super(h_swish, self).__init__()
+        super().__init__()
         self.sigmoid = h_sigmoid(inplace=inplace)
 
     def forward(self, x):
@@ -333,7 +333,7 @@ class h_swish(nn.Module):
 
 class CoordAtt(nn.Module):
     def __init__(self, inp, oup, reduction=32):
-        super(CoordAtt, self).__init__()
+        super().__init__()
         self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
         self.pool_w = nn.AdaptiveAvgPool2d((1, None))
 

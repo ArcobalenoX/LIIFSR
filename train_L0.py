@@ -170,20 +170,23 @@ def train(train_loader, model, optimizer, loss):
 
         predx2 = F.interpolate(pred, scale_factor=0.5, mode='bicubic')
         gtx2 = F.interpolate(gt, scale_factor=0.5, mode='bicubic')
-
         loss_charx2 = criterion_char(predx2,gtx2)
-        print(f"charx2: {loss_charx2}")
+
+        predx4 = F.interpolate(pred, scale_factor=0.25, mode='bicubic')
+        gtx4 = F.interpolate(gt, scale_factor=0.25, mode='bicubic')
+        loss_charx4 = criterion_char(predx4,gtx4)
+        #print(f"charx4: {loss_charx4}")
 
         loss_char = criterion_char(pred, gt)
-        print(f"char: {loss_char}")
+        #print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        print(f"edge: {loss_edge}")
+        #print(f"edge: {loss_edge}")
         loss_ssim = criterion_ssim(pred, gt)
-        print(f"ssim: {loss_ssim}")
+        #print(f"ssim: {loss_ssim}")
 
-        loss = (loss_char) + (loss_charx2) + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
+        loss = (loss_char)  + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)+ (loss_charx2)
         #loss = loss_L1(pred, gt)
-        print(f"loss: {loss}")
+        #print(f"loss: {loss}")
         train_loss.add(loss.item())
 
         optimizer.zero_grad()
@@ -289,7 +292,6 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-        print(config)
 
     #保存的checkpoint路径
     save_name = args.name

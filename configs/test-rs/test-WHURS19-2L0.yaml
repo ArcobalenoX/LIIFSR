@@ -2,11 +2,14 @@ test_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: E:\Code\Python\datas\RS\WHU-RS19-train\GT
-      L0_dir: E:\Code\Python\iPython\wavelet\smooth_whurs
+      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
+      L0_dir: /home/ww020823/yxc/dataset/smooth_whurs_test_grad
+      repeat: 1
+      cache: none
   wrapper:
     name: LO-wrappers
     args:
+      inp_size: 96
       scale: 2
   batch_size: 10
 

@@ -56,7 +56,7 @@ class L0SmoothSR(nn.Module):
 
 
         m_smoothgrad = []
-        m_smoothgrad.append(default_conv(1, args.n_colors))
+        #m_smoothgrad.append(default_conv(1, args.n_colors))
         m_smoothgrad.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
@@ -70,9 +70,11 @@ class L0SmoothSR(nn.Module):
     def forward(self, x, l ):
         inp = self.identity(x)
         lu = self.smoothgrad(l)
-        sam,attgrad = self.sam(inp,lu)
         res = self.residual(x)
-        y = torch.cat([inp,sam,res],dim=1)
+        sam, attgrad = self.sam(inp, lu)
+        y = torch.cat([inp, sam, res], dim=1)
+
+        #y = torch.cat([inp,lu,res],dim=1)
         y = self.fusion(y)
         return y
 

@@ -2,11 +2,9 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      #hr_dir: /home/ww020823/yxc/dataset/selfWHURS/WHURS19-train-hr
-      #L0_dir: /home/ww020823/yxc/dataset/selfWHURS/WHURS19-train-l0
-      hr_dir: E:\Code\Python\datas\RS\WHU-RS19-train\GT
-      L0_dir: E:\Code\Python\iPython\wavelet\smooth_whurs
-      repeat: 1
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-cross-train
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-train-grad-cross-low
+      repeat: 3
       cache: none
   wrapper:
     name: LO-wrappers
@@ -14,14 +12,14 @@ train_dataset:
       inp_size: 96
       scale: 2
       augment: true
-  batch_size: 10
+  batch_size: 30
 
 val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: E:\Code\Python\datas\RS\WHU-RS19-train\GT
-      L0_dir: E:\Code\Python\iPython\wavelet\smooth_whurs
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/low-sobel-test
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-test-low-grad
       repeat: 1
       cache: none
   wrapper:

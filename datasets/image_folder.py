@@ -133,4 +133,4 @@ class ImageFolder(Dataset):
             return xt, lt
 
         elif self.cache == 'in_memory':
-            return x,l
+            return x, l

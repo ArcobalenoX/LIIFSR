@@ -49,14 +49,27 @@ class L0SmoothSR(nn.Module):
         m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
         m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.residual = nn.Sequential(*m_residual)
+
+        smooth_iden = []
+        smooth_iden.append(default_conv(args.n_colors, n_feats))
+        for _ in range(n_resblocks//2):
+            smooth_iden.append(RSEB(n_feats))
+        smooth_iden.append(default_conv(n_feats, args.n_colors, kernel_size))
+        smooth_iden.append(Upsampler(default_conv, scale, args.n_colors, act=act))
+        self.smooth = nn.Sequential(*smooth_iden)
+
         self.out_dim = args.n_colors
 
     def forward(self, x, l ):
         inp = self.identity(x)
-        lu = self.identity(l)
+        lu = self.smooth(l)
         res = self.residual(x)
         y = res+inp+lu
         return y
+
+
+
+
 
     def load_state_dict(self, state_dict, strict=True):
         own_state = self.state_dict()

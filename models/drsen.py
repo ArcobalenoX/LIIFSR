@@ -72,7 +72,7 @@ class DRSEN(nn.Module):
             elif strict:
                 raise KeyError(f'unexpected key "{name}" in state_dict')
 
-@register('drsen')
+@register('drsens')
 def make_drsen(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
     args = Namespace()
     args.n_resblocks = n_resblocks
