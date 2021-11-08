@@ -200,10 +200,10 @@ class SEResBlock(nn.Module):
         res += x
         return res
 
-def conv(in_channels, out_channels, kernel_size, bias=False, stride = 1):
+def conv(in_channels, out_channels, kernel_size=3, bias=True, stride = 1):
     return nn.Conv2d(
         in_channels, out_channels, kernel_size,
-        padding=(kernel_size//2), bias=bias, stride = stride)
+        padding=(kernel_size//2), bias=bias, stride=stride)
 
 ## Supervised Attention Module
 class SAM(nn.Module):

@@ -2,9 +2,9 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-train
-      repeat: 1
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-cross-train
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-train-grad-cross-mid
+      repeat: 3
       cache: none
   wrapper:
     name: LO-wrappers
@@ -12,14 +12,14 @@ train_dataset:
       inp_size: 96
       scale: 2
       augment: true
-  batch_size: 20
+  batch_size: 30
 
 val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-test
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-test
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-test-mid-grad
       repeat: 1
       cache: none
   wrapper:
@@ -36,7 +36,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0SmoothSR
+  name: L0Smoothsam
   args:
     scale: 2
     upsampling: True

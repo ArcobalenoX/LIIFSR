@@ -75,21 +75,7 @@ class EDMK(nn.Module):
         return y
 
 
-    def load_state_dict(self, state_dict, strict=True):
-        own_state = self.state_dict()
-        for name, param in state_dict.items():
-            if name in own_state:
-                if isinstance(param, nn.Parameter):
-                    param = param.data
-                try:
-                    own_state[name].copy_(param)
-                except Exception:
-                    raise RuntimeError(f'While copying the parameter named "{name}", \
-                                        whose dimensions in the model are "{own_state[name].size()}" \
-                                        and whose dimensions in the checkpoint are "{param.size()}".')
-            elif strict:
-                if name.find('tail') == -1:
-                    raise KeyError(f'unexpected key "{name}" in state_dict')
+
 
 @register('edmk')
 def make_edmk(n_resblocks=16, n_feats=64, upsampling=False, scale=1):

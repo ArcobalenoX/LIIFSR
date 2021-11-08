@@ -74,7 +74,7 @@ def eval(loader, model, data_norm=None, verbose=False):
             #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
 
         if verbose:
-            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
+            pbar.set_description(f'PSNR {val_psnr.item():.10f} SSIM {val_ssim.item():.10f}')
 
     return val_psnr.item(), val_ssim.item()
 

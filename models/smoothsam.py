@@ -53,8 +53,6 @@ class L0SmoothSR(nn.Module):
         m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=act))
         self.residual = nn.Sequential(*m_residual)
 
-
-
         m_smoothgrad = []
         #m_smoothgrad.append(default_conv(1, args.n_colors))
         m_smoothgrad.append(Upsampler(default_conv, scale, args.n_colors, act=act))
@@ -67,7 +65,7 @@ class L0SmoothSR(nn.Module):
 
 
 
-    def forward(self, x, l ):
+    def forward(self, x, l):
         inp = self.identity(x)
         lu = self.smoothgrad(l)
         res = self.residual(x)
@@ -78,20 +76,6 @@ class L0SmoothSR(nn.Module):
         y = self.fusion(y)
         return y
 
-    def load_state_dict(self, state_dict, strict=True):
-        own_state = self.state_dict()
-        for name, param in state_dict.items():
-            if name in own_state:
-                if isinstance(param, nn.Parameter):
-                    param = param.data
-                try:
-                    own_state[name].copy_(param)
-                except Exception:
-                    raise RuntimeError(f'While copying the parameter named "{name}", \
-                                        whose dimensions in the model are "{own_state[name].size()}" \
-                                        and whose dimensions in the checkpoint are "{param.size()}".')
-            elif strict:
-                raise KeyError(f'unexpected key "{name}" in state_dict')
 
 @register('L0Smoothsam')
 def make_L0SmoothSR(n_resblocks=20, n_feats=64, upsampling=True, scale=2):

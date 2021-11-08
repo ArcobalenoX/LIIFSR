@@ -3,7 +3,7 @@ test_dataset:
     name: imageL0-folder
     args:
       hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-test
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-whurs-test-grad
       repeat: 1
       cache: none
   wrapper:

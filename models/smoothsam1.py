@@ -4,16 +4,17 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import default_conv, SELayer, Upsampler
+from common import default_conv, SELayer, Upsampler, SAM, PALayer
 
-class RSEB(nn.Module):
+
+class RSPA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()
         self.conv1 = default_conv(n_feats, n_feats, 3)
         self.act1 = nn.ReLU(True)
         self.conv2 = default_conv(n_feats, n_feats//2, 3)
         self.conv3 = default_conv(n_feats+n_feats+n_feats//2, n_feats, 1)
-        self.se = SELayer(n_feats, 8)
+        self.att = PALayer(n_feats, 8)
 
     def forward(self, x):
         x1 = x
@@ -22,7 +23,7 @@ class RSEB(nn.Module):
         x3 = self.conv2(x2)
         y = torch.cat([x3, x2, x1], dim=1)
         y = self.conv3(y)
-        y = self.se(y)+x
+        y = self.att(y)+x
         return y
 
 class L0SmoothSR(nn.Module):
@@ -30,45 +31,57 @@ class L0SmoothSR(nn.Module):
         super().__init__()
         self.args = args
         kernel_size = 3
+        n_colors = args.n_colors
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
         scale = args.scale
-        act = False
-        #act = "prelu"
 
         #define identity branch
         m_identity = []
-        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=act))
+        m_identity.append(default_conv(n_colors, n_feats//2))
+        m_identity.append(Upsampler(default_conv, scale, n_feats//2))
         self.identity = nn.Sequential(*m_identity)
+
+        self.identity_up = default_conv(n_feats//2, n_colors)
+
 
         # define residual branch
         m_residual = []
         m_residual.append(default_conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
-            m_residual.append(RSEB(n_feats))
+            m_residual.append(RSPA(n_feats))
         m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
-        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=act))
+        m_residual.append(Upsampler(default_conv, scale, args.n_colors))
         self.residual = nn.Sequential(*m_residual)
 
-        smooth_iden = []
-        smooth_iden.append(default_conv(args.n_colors, n_feats))
-        for _ in range(n_resblocks//2):
-            smooth_iden.append(RSEB(n_feats))
-        smooth_iden.append(default_conv(n_feats, args.n_colors, kernel_size))
-        smooth_iden.append(Upsampler(default_conv, scale, args.n_colors, act=act))
-        self.smooth = nn.Sequential(*smooth_iden)
+        m_smoothgrad = []
+        m_smoothgrad.append(default_conv(args.n_colors, n_feats//2))
+        m_smoothgrad.append(Upsampler(default_conv, scale, n_feats//2))
+        self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
-        self.out_dim = args.n_colors
+        self.sam = SAM(args.n_colors, kernel_size, True)
+
+        self.gradup = Upsampler(default_conv, scale, n_feats)
+
+        self.fusion = default_conv(9, 3, kernel_size)
+
 
     def forward(self, x, l):
         inp = self.identity(x)
-        lu = self.smooth(l)
+        lu = self.smoothgrad(l)
+        sam, attgrad = self.sam(inp, lu)
+
+        samiden = torch.cat([inp, sam], dim=1)
+
+        samup = self.gradup(sam)
+
         res = self.residual(x)
-        y = res+inp+lu
+
+        y = res+x
         return y
 
 
-@register('L0SmoothSR')
+@register('L0Smoothsam1')
 def make_L0SmoothSR(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
     args = Namespace()
     args.n_resblocks = n_resblocks
@@ -81,7 +94,7 @@ def make_L0SmoothSR(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
-    l = torch.rand(1, 3, 128, 128)
+    l = torch.rand(1, 1, 128, 128)
     model = make_L0SmoothSR(upsampling=True, scale=2)
     y = model(x,l)
     print(model)
