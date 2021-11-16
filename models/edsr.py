@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from models import register
+from common import compute_num_params
 
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True):
@@ -15,24 +16,26 @@ def default_conv(in_channels, out_channels, kernel_size, bias=True):
         in_channels, out_channels, kernel_size,
         padding=(kernel_size//2), bias=bias)
 
+
 class MeanShift(nn.Conv2d):
     def __init__(
         self, rgb_range,
         rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), sign=-1):
 
-        super(MeanShift, self).__init__(3, 3, kernel_size=1)
+        super().__init__(3, 3, kernel_size=1)
         std = torch.Tensor(rgb_std)
         self.weight.data = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
         self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std
         for p in self.parameters():
             p.requires_grad = False
 
+
 class ResBlock(nn.Module):
     def __init__(
         self, conv, n_feats, kernel_size,
         bias=True, bn=False, act=nn.ReLU(True), res_scale=1):
 
-        super(ResBlock, self).__init__()
+        super().__init__()
         m = []
         for i in range(2):
             m.append(conv(n_feats, n_feats, kernel_size, bias=bias))
@@ -49,6 +52,7 @@ class ResBlock(nn.Module):
         res += x
 
         return res
+
 
 class Upsampler(nn.Sequential):
     def __init__(self, conv, scale, n_feats, bn=False, act=False, bias=True):
@@ -77,7 +81,7 @@ class Upsampler(nn.Sequential):
         else:
             raise NotImplementedError
 
-        super(Upsampler, self).__init__(*m)
+        super().__init__(*m)
 
 
 url = {
@@ -91,7 +95,7 @@ url = {
 
 class EDSR(nn.Module):
     def __init__(self, args, conv=default_conv):
-        super(EDSR, self).__init__()
+        super().__init__()
         self.args = args
         n_resblocks = args.n_resblocks
         n_feats = args.n_feats
@@ -191,3 +195,11 @@ def make_edsr(n_resblocks=32, n_feats=256, res_scale=0.1,
     args.rgb_range = rgb_range
     args.n_colors = 3
     return EDSR(args)
+
+if __name__ == '__main__':
+    x = torch.rand(1, 3, 48, 48)
+    model = make_edsr(scale=4)
+    y = model(x)
+    #print(model)
+    print(y.shape)
+    print("param_nums:", compute_num_params(model))

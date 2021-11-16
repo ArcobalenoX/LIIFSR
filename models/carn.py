@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import arch_util
 
+from models import register
+from common import compute_num_params
 
 class Block(nn.Module):
     def __init__(self, nf, group=1):
@@ -30,8 +32,9 @@ class Block(nn.Module):
         return o3
 
 
+@register('carn')
 class CARN_M(nn.Module):
-    def __init__(self, in_nc, out_nc, nf, scale=4, multi_scale=False, group=4):
+    def __init__(self, in_nc=3, out_nc=3, nf=64, scale=4, multi_scale=False, group=4):
         super().__init__()
         self.scale = scale
         rgb_range = 1
@@ -79,10 +82,10 @@ class CARN_M(nn.Module):
         return out
 
 if __name__ == '__main__':
-    x = torch.rand(1, 3, 128, 128)
-    model = CARN_M(in_nc=3,out_nc=3,nf=64, scale=2)
+    x = torch.rand(1, 3, 48, 48)
+    model = CARN_M(scale=4)
     y = model(x)
     print(model)
-    #param_nums = utils.compute_num_params(model)
-    #print(param_nums)
+    param_nums = compute_num_params(model)
+    print(param_nums)
     print(y.shape)

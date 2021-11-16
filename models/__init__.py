@@ -1,12 +1,10 @@
 from .models import register, make
 from . import edsr, rdn, mlp, liif, misc, siren
 
-from . import edca, edmk, mkca
-
 from . import drsen, drsenca, drsenmk, drsencbam, drsenmkca, drsenmkpa
 
-from . import arch_util,rcan,fsrcnn,srresnet,carn
+from . import arch_util, rcan, srresnet, carn, pan
 
-from . import smoothsr,smoothsam
+from . import smoothsr, smoothsam, smoothsamx
 
 

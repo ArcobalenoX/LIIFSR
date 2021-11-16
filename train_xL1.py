@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import MultiStepLR,CosineAnnealingLR
+from torch.optim.lr_scheduler import MultiStepLR, CosineAnnealingLR
 from torchvision.utils import save_image
 from tqdm import tqdm
 import sys
@@ -14,7 +14,7 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-from test_x import eval
+from train_x import eval
 
 def make_data_loader(spec, tag=''):
     if spec is None:
@@ -78,8 +78,8 @@ def train(train_loader, model, optimizer ):
     inp_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
     inp_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
     t = data_norm['gt']
-    gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
-    gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
+    gt_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
+    gt_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
 
     for batch in tqdm(train_loader, leave=False, desc='train'):
         for k, v in batch.items():
@@ -200,12 +200,11 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-        print(config)
 
     #保存的checkpoint路径
     save_name = args.name
     if save_name is None:
-        save_name = args.config.split('/')[-1][len('train_'):-len('.yaml')]
+        save_name = args.config.split('/')[-1][:-len('.yaml')]
     save_path = os.path.join('save', save_name)
 
     main(config, save_path)

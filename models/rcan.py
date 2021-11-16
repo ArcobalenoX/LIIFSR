@@ -1,6 +1,10 @@
 import math
+import torch
 import torch.nn as nn
 import arch_util
+import utils
+from models import register
+from common import compute_num_params
 
 ## Channel Attention (CA) Layer
 class CALayer(nn.Module):
@@ -80,21 +84,19 @@ class Upsampler(nn.Sequential):
 
         super(Upsampler, self).__init__(*m)
 
+
+@register('rcan')
 ## Residual Channel Attention Network (RCAN)
 class RCAN(nn.Module):
     ''' modified RCAN '''
-    
-    def __init__(self, n_resgroups, n_resblocks, n_feats, res_scale, n_colors, rgb_range, scale, reduction, conv=arch_util.default_conv):
+    def __init__(self, n_resgroups=10, n_resblocks=20, n_feats=64, reduction=16, scale=4,
+                 res_scale=1, rgb_range=1):
         super().__init__()
-        
-        n_resgroups = n_resgroups
-        n_resblocks = n_resblocks
-        n_feats = n_feats
+        n_colors = 3
         kernel_size = 3
-        reduction = reduction 
-        scale = scale
         act = nn.ReLU(True)
-        
+        conv = arch_util.default_conv
+
         # RGB mean for DIV2K
         rgb_mean = (0.4488, 0.4371, 0.4040)
         rgb_std = (1.0, 1.0, 1.0)
@@ -123,14 +125,22 @@ class RCAN(nn.Module):
         self.tail = nn.Sequential(*modules_tail)
         
         arch_util.initialize_weights([self.head, self.body, self.tail], 0.1)
+
     def forward(self, x):
         x = self.sub_mean(x)
         x = self.head(x)
-
         res = self.body(x)
         res += x
-
         x = self.tail(res)
         x = self.add_mean(x)
+        return x
 
-        return x 
+
+if __name__ == '__main__':
+    x = torch.rand(1, 3, 48, 48)
+    model = RCAN(n_feats=64, scale=4)
+    y = model(x)
+    print(model)
+    param_nums = compute_num_params(model, True)
+    print(param_nums)
+    print(y.shape)

@@ -5,7 +5,7 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import default_conv, Upsampler
+from common import conv, Upsampler, compute_num_params
 from sobel import SobelConv2d
 
 class ResBlock(nn.Module):
@@ -42,16 +42,16 @@ class DRSENSOBEL(nn.Module):
 
         #define identity branch
         m_identity = []
-        m_identity.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        m_identity.append(Upsampler(conv, scale, args.n_colors, act=False))
         self.identity = nn.Sequential(*m_identity)
 
         # define residual branch
         m_residual = []
-        m_residual.append(default_conv(args.n_colors, n_feats))
+        m_residual.append(conv(args.n_colors, n_feats))
         for _ in range(n_resblocks):
             m_residual.append(ResBlock(n_feats))
-        m_residual.append(default_conv(n_feats, args.n_colors, kernel_size))
-        m_residual.append(Upsampler(default_conv, scale, args.n_colors, act=False))
+        m_residual.append(conv(n_feats, args.n_colors, kernel_size))
+        m_residual.append(Upsampler(conv, scale, args.n_colors, act=False))
         self.residual = nn.Sequential(*m_residual)
         self.out_dim = args.n_colors
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     model = make_drsensobel(n_resblocks=20, n_feats=32,upsampling=True, scale=2)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model,True)
+    param_nums = compute_num_params(model)
     print(param_nums)
     print(y.shape)
 

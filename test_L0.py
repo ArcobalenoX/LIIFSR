@@ -8,7 +8,6 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from tqdm import tqdm
-
 import sys
 sys.path.append("models")
 import datasets
@@ -16,11 +15,11 @@ import models
 import utils
 from train_L0 import batched_predict, eval
 
+
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -50,4 +49,4 @@ if __name__ == '__main__':
     model = models.make(model_spec, load_sd=True).cuda()
 
     psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    print(f'result: psnr={psnr:.10f} ssim={ssim:.10f}')
+    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')

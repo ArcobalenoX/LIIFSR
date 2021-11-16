@@ -128,8 +128,10 @@ def to_pixel_samples(img):
     rgb = img.view(3, -1).permute(1, 0)  #(3,h*w)-->(h*w,3)==(h*w,[R,G,B])
     return coord, rgb
 
+
 def resize_fn(img, size):
     return ToTensor()(Resize(size, Image.BICUBIC)(ToPILImage()(img)))
+
 
 def calc_psnr(sr, hr, dataset=None, scale=1, rgb_range=1):
     diff = (sr - hr) / rgb_range

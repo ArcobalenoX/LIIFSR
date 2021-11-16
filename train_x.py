@@ -14,9 +14,63 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-from test_x import eval
 from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss, SSIMLoss
 
+def batched_predict(model, inp):
+    model.eval()
+    with torch.no_grad():
+        pred = model(inp)
+    return pred
+
+
+def eval(loader, model, data_norm=None, verbose=False):
+    model.eval()
+    if data_norm is None:
+        data_norm = {
+            'inp': {'sub': [0], 'div': [1]},
+            'gt': {'sub': [0], 'div': [1]}
+        }
+
+    t = data_norm['inp']
+    inp_sub = torch.FloatTensor(t['sub']).cuda()
+    inp_div = torch.FloatTensor(t['div']).cuda()
+    t = data_norm['gt']
+    gt_sub = torch.FloatTensor(t['sub']).cuda()
+    gt_div = torch.FloatTensor(t['div']).cuda()
+
+    max_psnr = 0
+    max_ssim = 0
+
+    val_psnr = utils.Averager()
+    val_ssim = utils.Averager()
+
+    pbar = tqdm(loader, leave=False, desc='val')
+    for batch in pbar:
+        for k, v in batch.items():
+            batch[k] = v.cuda()
+        inp = (batch['inp'] - inp_sub) / inp_div
+
+
+        pred = batched_predict(model,inp)
+        pred = (pred * gt_div + gt_sub).clamp_(0, 1)
+
+        psnr = utils.calc_psnr(pred, batch['gt'])
+        val_psnr.add(psnr.item(), inp.shape[0])
+
+        ssim = utils.ssim(pred, batch['gt'])
+        val_ssim.add(ssim.item(), inp.shape[0])
+
+        if psnr > max_psnr:
+            max_psnr = psnr
+            #save_image(pred, f"testimg/max_psnr.jpg", nrow=int(math.sqrt(pred.shape[0])))
+        if ssim > max_ssim:
+            max_ssim = ssim
+            #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
+
+        if verbose:
+            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
+
+    return val_psnr.item(), val_ssim.item()
 
 def make_data_loader(spec, tag=''):
     if spec is None:
@@ -70,9 +124,8 @@ def prepare_training():
     return model, optimizer, epoch_start, lr_scheduler
 
 
-def train(train_loader, model, optimizer, loss):
+def train(train_loader, model, optimizer):
     model.train()
-    loss_L1 = nn.L1Loss()
     train_loss = utils.Averager()
 
     criterion_char = CharbonnierLoss()
@@ -83,16 +136,13 @@ def train(train_loader, model, optimizer, loss):
     inp_size = train_dataset['wrapper']['args']['inp_size']
     scale = train_dataset['wrapper']['args']['scale']
     bs = train_dataset['batch_size']
-
-
     data_norm = config['data_norm']
     t = data_norm['inp']
-    inp_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
-    inp_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    inp_sub = torch.FloatTensor(t['sub']).cuda()
+    inp_div = torch.FloatTensor(t['div']).cuda()
     t = data_norm['gt']
-    gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
-    gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
-
+    gt_sub = torch.FloatTensor(t['sub']).cuda()
+    gt_div = torch.FloatTensor(t['div']).cuda()
 
     for batch in tqdm(train_loader, leave=False, desc='train'):
         for k, v in batch.items():
@@ -102,41 +152,31 @@ def train(train_loader, model, optimizer, loss):
         pred = model(inp)
         gt = (batch['gt'] - gt_sub) / gt_div
 
-        #print(inp.shape,pred.shape,gt.shape)
-        #if True:
-        if False:
+        save_img = 0
+        if save_img:
             predimg = (pred * gt_div + gt_sub).clamp(0, 1)
             gtimg = (gt * gt_div + gt_sub).clamp(0, 1)
             save_image((inp * inp_div + inp_sub).clamp(0, 1), f"vis/inp.jpg", nrow=int(math.sqrt(bs)))
             save_image(predimg, f"vis/predimg.jpg", nrow=int(math.sqrt(bs)))
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
-        pred_u2 = F.interpolate(pred, scale_factor=2, mode='bicubic')
-        gt_u2 = F.interpolate(gt, scale_factor=2, mode='bicubic')
-        pred_d2 = F.interpolate(pred, scale_factor=0.5, mode='bicubic')
-        gt_d2 = F.interpolate(gt, scale_factor=0.5, mode='bicubic')
-
-        print_loss = False
-
-
-        loss_char_u2 = criterion_char(pred_u2, gt_u2)
-        #print(f"char u2: {loss_char_u2}")
-
-        loss_char_d2 = criterion_char(pred_d2, gt_d2)
-        #print(f"char d2: {loss_char_d2}")
-
         loss_char = criterion_char(pred, gt)
-        #print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        #print(f"edge: {loss_edge}")
         loss_ssim = criterion_ssim(pred, gt)
-        #print(f"ssim: {loss_ssim}")
 
-        loss = (loss_char) + (loss_char_u2) + (loss_char_u2)+ (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)
-        #loss = loss_L1(pred, gt)
-        #print(f"loss: {loss}")
+        pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
+        gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
+        loss_dual = criterion_char(pred_dual, gt_dual)
 
+        loss = loss_char + loss_edge + loss_dual + (1-loss_ssim)
 
+        print_loss = 1
+        if print_loss:
+            print(f"char: {loss_char}")
+            print(f"edge: {loss_edge}")
+            print(f"ssim: {loss_ssim}")
+            print(f"loss_dual: {loss_dual}")
+            print(f"total_loss: {loss}")
 
         train_loss.add(loss.item())
 
@@ -182,8 +222,7 @@ def main(config_, save_path):
         #print(f"epoch--{epoch},lr--{lr}")
         writer.add_scalar('lr', lr, epoch)
 
-        loss = nn.L1Loss()
-        train_loss = train(train_loader, model, optimizer , loss)
+        train_loss = train(train_loader, model, optimizer)
 
         if lr_scheduler is not None:
             lr_scheduler.step()
@@ -248,12 +287,12 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-        print(config)
+
 
     #保存的checkpoint路径
     save_name = args.name
     if save_name is None:
-        save_name = args.config.split('/')[-1][len('train_'):-len('.yaml')]
+        save_name = args.config.split('/')[-1][:-len('.yaml')]
     save_path = os.path.join('save', save_name)
 
     main(config, save_path)

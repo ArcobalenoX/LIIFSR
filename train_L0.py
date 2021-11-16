@@ -15,7 +15,7 @@ import datasets
 from models import models
 import utils
 #from test_x import eval
-from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss, SSIMLoss
+from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss, ContrastLoss
 
 def batched_predict(model, lr, ls):
     model.eval()
@@ -74,7 +74,7 @@ def eval(loader, model, data_norm=None, verbose=False):
             #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
 
         if verbose:
-            pbar.set_description(f'PSNR {val_psnr.item():.10f} SSIM {val_ssim.item():.10f}')
+            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
 
     return val_psnr.item(), val_ssim.item()
 
@@ -130,7 +130,7 @@ def prepare_training():
     return model, optimizer, epoch_start, lr_scheduler
 
 
-def train(train_loader, model, optimizer, loss):
+def train(train_loader, model, optimizer):
     model.train()
     loss_L1 = nn.L1Loss()
     train_loss = utils.Averager()
@@ -138,6 +138,8 @@ def train(train_loader, model, optimizer, loss):
     criterion_char = CharbonnierLoss()
     criterion_edge = EdgeLoss()
     criterion_ssim = SSIMLoss()
+    criterion_con = ContrastLoss()
+
 
     train_dataset = config['train_dataset']
     inp_size = train_dataset['wrapper']['args']['inp_size']
@@ -147,14 +149,14 @@ def train(train_loader, model, optimizer, loss):
 
     data_norm = config['data_norm']
     t = data_norm['lr']
-    lr_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
-    lr_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    lr_sub = torch.FloatTensor(t['sub']).cuda()
+    lr_div = torch.FloatTensor(t['div']).cuda()
     t = data_norm['ls']
-    ls_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
-    ls_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    ls_sub = torch.FloatTensor(t['sub']).cuda()
+    ls_div = torch.FloatTensor(t['div']).cuda()
     t = data_norm['gt']
-    gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
-    gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
+    gt_sub = torch.FloatTensor(t['sub']).cuda()
+    gt_div = torch.FloatTensor(t['div']).cuda()
 
 
     for batch in tqdm(train_loader, leave=False, desc='train'):
@@ -163,32 +165,30 @@ def train(train_loader, model, optimizer, loss):
 
         lr = (batch['lr'] - lr_sub) / lr_div
         ls = (batch['ls'] - ls_sub) / ls_div
-        pred = model(lr,ls)
+        pred = model(lr, ls)
         gt = (batch['gt'] - gt_sub) / gt_div
 
         #print(lr.shape,pred.shape,gt.shape)
 
-        predx2 = F.interpolate(pred, scale_factor=0.5, mode='bicubic')
-        gtx2 = F.interpolate(gt, scale_factor=0.5, mode='bicubic')
-        loss_charx2 = criterion_char(predx2,gtx2)
-
-        predx4 = F.interpolate(pred, scale_factor=0.25, mode='bicubic')
-        gtx4 = F.interpolate(gt, scale_factor=0.25, mode='bicubic')
-        loss_charx4 = criterion_char(predx4,gtx4)
-        #print(f"charx4: {loss_charx4}")
-
         loss_char = criterion_char(pred, gt)
-        #print(f"char: {loss_char}")
         loss_edge = criterion_edge(pred, gt)
-        #print(f"edge: {loss_edge}")
-        loss_ssim = criterion_ssim(pred, gt)
-        #print(f"ssim: {loss_ssim}")
+        loss_ssim = 1-criterion_ssim(pred, gt)
 
-        loss = (loss_char)  + (loss_edge) + (1-loss_ssim)#+ (1e-3*loss_adv)+ (loss_charx2)
-        #loss = loss_L1(pred, gt)
-        #print(f"loss: {loss}")
+        pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
+        gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
+        loss_dual = criterion_char(pred_dual, gt_dual)
+
+        loss = loss_char + loss_edge + loss_ssim + loss_dual
+
+        print_loss = 1
+        if print_loss:
+            print(f"char: {loss_char}")
+            print(f"edge: {loss_edge}")
+            print(f"ssim: {loss_ssim}")
+            print(f"loss_dual: {loss_dual}")
+            print(f"total_loss: {loss}")
+
         train_loss.add(loss.item())
-
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -226,8 +226,8 @@ def main(config_, save_path):
         #print(f"epoch--{epoch},lr--{lr}")
         writer.add_scalar('lr', lr, epoch)
 
-        loss = nn.L1Loss()
-        train_loss = train(train_loader, model, optimizer , loss)
+
+        train_loss = train(train_loader, model, optimizer )
 
         if lr_scheduler is not None:
             lr_scheduler.step()
@@ -296,7 +296,7 @@ if __name__ == '__main__':
     #保存的checkpoint路径
     save_name = args.name
     if save_name is None:
-        save_name = args.config.split('/')[-1][len('train_'):-len('.yaml')]
+        save_name = args.config.split('/')[-1][:-len('.yaml')]
     save_path = os.path.join('save', save_name)
 
     main(config, save_path)

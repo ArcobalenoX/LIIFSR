@@ -1,11 +1,8 @@
 import math
 import torch
 import torch.nn as nn
-from argparse import Namespace
-
-import utils
 from models import register
-from common import default_conv, SELayer, Upsampler
+from common import conv, SELayer, Upsampler, compute_num_params
 
 
 class ResBlock(nn.Module):
@@ -37,38 +34,36 @@ class ResBlock(nn.Module):
 
         return y
 
+@register('drsenmk')
 class DRSENMK(nn.Module):
-    def __init__(self, args):
+    def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
-        self.args = args
+
         kernel_size = 3
-        n_resblocks = args.n_resblocks
-        n_feats = args.n_feats
-        scale = args.scale
+        n_colors = 3
         act = nn.ReLU(True)
 
         #define head module
         m_head = []
-        m_head.append(default_conv(args.n_colors, n_feats))
-        m_head.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_head.append(default_conv(n_feats, args.n_colors, kernel_size))
+        m_head.append(conv(n_colors, n_feats))
+        m_head.append(Upsampler(conv, scale, n_feats, act=False))
+        m_head.append(conv(n_feats, n_colors, kernel_size))
         self.head = nn.Sequential(*m_head)
 
 
         # define body module
         m_body = []
-        m_body.append(default_conv(args.n_colors, n_feats))
+        m_body.append(conv(n_colors, n_feats))
         for _ in range(n_resblocks):
             m_body.append(ResBlock(n_feats))
         self.body = nn.Sequential(*m_body)
 
         # define tail module
         m_tail = []
-        m_tail.append(Upsampler(default_conv, scale, n_feats, act=False))
-        m_tail.append(default_conv(n_feats, args.n_colors, kernel_size))
+        m_tail.append(Upsampler(conv, scale, n_feats, act=False))
+        m_tail.append(conv(n_feats, n_colors, kernel_size))
         self.tail = nn.Sequential(*m_tail)
 
-        self.out_dim = args.n_colors
 
     def forward(self, x):
         inp = self.head(x)
@@ -79,23 +74,14 @@ class DRSENMK(nn.Module):
 
 
 
-@register('drsenmk')
-def make_drsenmk(n_resblocks=20, n_feats=64, upsampling=True, scale=2):
-    args = Namespace()
-    args.n_resblocks = n_resblocks
-    args.n_feats = n_feats
-    args.upsampling = upsampling
-    args.scale = scale
-    args.n_colors = 3
-    return DRSENMK(args)
 
 
 if __name__ == '__main__':
-    x = torch.rand(1, 3, 128, 128)
-    model = make_drsenmk(upsampling=True, scale=2)
+    x = torch.rand(1, 3, 48, 48)
+    model = DRSENMK(scale=4)
     y = model(x)
     print(model)
-    param_nums = utils.compute_num_params(model)
+    param_nums = compute_num_params(model)
     print(param_nums)
     print(y.shape)
 

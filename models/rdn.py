@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 from models import register
-
+from common import compute_num_params
 
 class RDB_Conv(nn.Module):
     def __init__(self, inChannels, growRate, kSize=3):
@@ -126,3 +126,11 @@ def make_rdn(G0=64, RDNkSize=3, RDNconfig='B',
 
     args.n_colors = 3
     return RDN(args)
+
+if __name__ == '__main__':
+    x = torch.rand(1, 3, 48, 48)
+    model = make_rdn(scale=4)
+    y = model(x)
+    print(model)
+    print(y.shape)
+    print("param_nums:", compute_num_params(model))

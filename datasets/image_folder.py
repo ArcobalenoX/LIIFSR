@@ -102,7 +102,7 @@ class ImageFolder(Dataset):
         self.cache = cache
         image_names = sorted(os.listdir(hr_dir))
         self.files = []
-        self.L0S=[]
+        self.L0S = []
         for hr_name in image_names:
             if is_image_file(hr_name):
                 file = os.path.join(hr_dir, hr_name)
@@ -134,3 +134,4 @@ class ImageFolder(Dataset):
 
         elif self.cache == 'in_memory':
             return x, l
+

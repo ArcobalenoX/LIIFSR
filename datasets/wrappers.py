@@ -257,7 +257,7 @@ class SRDownsampled(Dataset):
 
 @register('LO-wrappers')
 class SRDownsampled(Dataset):
-    def __init__(self, dataset, inp_size=None, scale=2,augment=False):
+    def __init__(self, dataset, inp_size=None, scale=2, augment=False):
         self.dataset = dataset
         self.inp_size = inp_size
         self.scale = scale
@@ -267,7 +267,7 @@ class SRDownsampled(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        img,ls = self.dataset[idx]
+        img, ls = self.dataset[idx]
         s = self.scale
 
         if self.inp_size is None:
@@ -275,7 +275,9 @@ class SRDownsampled(Dataset):
             w_lr = math.floor(img.shape[-1] / s + 1e-9)
             img = img[:, :round(h_lr * s), :round(w_lr * s)] # assume round int
             img_down = resize_fn(img, (h_lr, w_lr))
-            crop_lr, crop_hr = img_down, img
+            ls = ls[:, :round(h_lr * s), :round(w_lr * s)] # assume round int
+            ls_down = resize_fn(ls, (h_lr, w_lr))
+            crop_lr, crop_ls, crop_hr = img_down, ls_down, img
         else:
             w_lr = self.inp_size
             w_hr = round(w_lr * s)

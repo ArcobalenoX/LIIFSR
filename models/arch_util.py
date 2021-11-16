@@ -28,7 +28,7 @@ def initialize_weights(net_l, scale=1):
 def make_layer(block, n_layers):
     layers = []
     for _ in range(n_layers):
-        layers.append(block())
+        layers.append(block)
     return nn.Sequential(*layers)
 
 
