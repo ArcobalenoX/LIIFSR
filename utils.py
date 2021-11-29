@@ -79,7 +79,7 @@ def set_save_path(save_path, remove=True):
     return log, writer
 
 
-def compute_num_params(model, text=False):
+def compute_num_params(model, text=True):
     tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
     if text:
         if tot >= 1e6:

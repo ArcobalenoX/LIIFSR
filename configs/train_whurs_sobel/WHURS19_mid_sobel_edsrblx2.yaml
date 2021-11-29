@@ -2,28 +2,28 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
-      repeat: 1
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-train
+      repeat: 10
       cache: in_memory
   wrapper:
     name: sr-paired
     args:
-      inp_size: 48
+      inp_size: 96
       scale: 2
       augment: true
-  batch_size: 20
+  batch_size: 40
 
 val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
-      repeat: 1
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-test
+      repeat: 10
       cache: in_memory
   wrapper:
     name: sr-paired
     args:
-      inp_size: 48
+      inp_size: 96
       scale: 2
   batch_size: 10
 
@@ -33,9 +33,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: rcan
+  name: edsr-baseline
   args:
     scale: 2
+    no_upsampling: false
 
 
 optimizer:

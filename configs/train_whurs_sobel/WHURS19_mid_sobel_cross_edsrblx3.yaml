@@ -2,14 +2,14 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-nocross-train
-      repeat: 15
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-cross-train
+      repeat: 3
       cache: in_memory
   wrapper:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 3
       augment: true
   batch_size: 40
 
@@ -17,14 +17,14 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/mid-sobel-test
+      root_path: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-test
       repeat: 1
       cache: in_memory
   wrapper:
     name: sr-paired
     args:
       inp_size: 96
-      scale: 2
+      scale: 3
   batch_size: 10
 
 
@@ -35,7 +35,7 @@ data_norm:
 model:
   name: edsr-baseline
   args:
-    scale: 2
+    scale: 3
     no_upsampling: false
 
 

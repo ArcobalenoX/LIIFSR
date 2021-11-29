@@ -59,10 +59,10 @@ class MSRResNet(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = MSRResNet(scale=4)
+    model = MSRResNet(scale=2)
     y = model(x)
     print(model)
     print(y.shape)
-    print("param_nums:", compute_num_params(model,True))
+    print("param_nums:", compute_num_params(model))
 
 

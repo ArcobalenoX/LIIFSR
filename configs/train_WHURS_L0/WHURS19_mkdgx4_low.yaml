@@ -2,32 +2,32 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-cross-train
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth-mid-train-l0.2-k10-grad
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-cross-train
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-train-grad-cross-low
       repeat: 3
-      cache: none
+      cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
       inp_size: 96
-      scale: 2
+      scale: 4
       augment: true
-  batch_size: 30
+  batch_size: 10
 
 val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/sobel/mid-sobel-test
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-mid-test-l0.2-k10-grad
+      hr_dir: /home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test
+      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test-low-grad
       repeat: 1
-      cache: none
+      cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
       inp_size: 96
-      scale: 2
-  batch_size: 10
+      scale: 4
+  batch_size: 1
 
 
 data_norm:
@@ -36,10 +36,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0Smoothsam
+  name: mkdg_high
   args:
-    scale: 2
-    upsampling: True
+    scale: 4
+
 
 
 optimizer:

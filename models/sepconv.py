@@ -1,5 +1,5 @@
 import torch
-from torchsummary import  summary
+from torchsummary import summary
 import torch.nn as nn
  
 '''

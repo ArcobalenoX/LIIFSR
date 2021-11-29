@@ -11,7 +11,7 @@ train_dataset:
       inp_size: 48
       scale: 2
       augment: true
-  batch_size: 20
+  batch_size: 30
 
 val_dataset:
   dataset:
@@ -33,7 +33,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: rcan
+  name: pan
   args:
     scale: 2
 

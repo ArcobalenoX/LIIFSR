@@ -28,7 +28,7 @@ class RSEB(nn.Module):
 
 @register('drsens')
 class DRSEN(nn.Module):
-    def __init__(self, n_resblocks=20, n_feats=64, scale=2):
+    def __init__(self, n_resblocks=20, n_feats=64, scale=2, upsampling=True):
         super().__init__()
 
         kernel_size = 3

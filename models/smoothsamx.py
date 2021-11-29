@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from models import register
-from common import compute_num_params, conv, SELayer, Upsampler, SAM, PALayer, Get_gradient
+from common import compute_num_params, conv, SELayer, Upsampler, SAM, PALayer
 
 class RSPA(nn.Module):
     def __init__(self, n_feats):
@@ -31,14 +31,11 @@ class L0SmoothSR(nn.Module):
         kernel_size = 3
         n_colors = 3
 
-        identity_sr = Upsampler(conv, scale, n_colors)
-
         #define identity branch
         m_identity = []
         m_identity.append(conv(n_colors, n_feats))
         m_identity.append(Upsampler(conv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
-
         self.identity_up = conv(n_feats, n_colors)
 
 
@@ -47,7 +44,6 @@ class L0SmoothSR(nn.Module):
         m_residual.append(conv(n_colors, n_feats))
         for _ in range(n_resblocks):
             m_residual.append(RSPA(n_feats))
-        #m_residual.append(conv(n_feats, n_colors))
         m_residual.append(Upsampler(conv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
 
@@ -58,29 +54,17 @@ class L0SmoothSR(nn.Module):
         m_smoothgrad.append(Upsampler(conv, scale, n_feats))
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
-        self.sam = SAM(n_colors, kernel_size, True)
-
-        self.gradup = Upsampler(conv, scale, n_feats)
+        #self.sam = SAM(n_colors, kernel_size, True)
+        #self.gradup = Upsampler(conv, scale, n_feats)
 
         self.fusion = conv(n_feats*3, 3, kernel_size)
 
 
     def forward(self, x, l):
 
-        #x_grad = Get_gradient().cuda()(x)
-        #print(x_grad.shape)
         inp = self.identity(x)
         lu = self.smoothgrad(l)
-        #sam, attgrad = self.sam(inp, lu)
-
-        #samiden = torch.cat([inp, sam], dim=1)
-
-        #samup = self.gradup(sam)
-
         res = self.residual(x)
-
-        #y=  res+x
-
         y = torch.cat([inp, lu, res], dim=1)
         y = self.fusion(y)
 

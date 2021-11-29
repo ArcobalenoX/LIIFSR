@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--config')
     parser.add_argument('--model')
     parser.add_argument('--gpu', default='0')
+    parser.add_argument('--scale', default=2)
     parser.add_argument('--save_sr', default=False)
 
     args = parser.parse_args()
@@ -35,14 +36,20 @@ if __name__ == '__main__':
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
+
+
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
+    spec['wrapper']['args']['scale'] = int(args.scale)
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 
     sv_file = torch.load(args.model)
     model_spec = torch.load(args.model)['model']
     model = models.make(model_spec, load_sd=True).cuda()
+
+    parments = utils.compute_num_params(model, True)
+    print("params:", parments)
 
     psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
     print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')

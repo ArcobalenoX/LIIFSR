@@ -9,7 +9,7 @@ train_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
       augment: true
   batch_size: 20
 
@@ -24,7 +24,7 @@ val_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
   batch_size: 10
 
 
@@ -35,7 +35,7 @@ data_norm:
 model:
   name: rcan
   args:
-    scale: 2
+    scale: 3
 
 
 optimizer:

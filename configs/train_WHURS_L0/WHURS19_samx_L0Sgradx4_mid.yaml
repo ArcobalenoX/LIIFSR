@@ -36,7 +36,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0Smoothmid
+  name: L0Smoothsamx
   args:
     scale: 4
 

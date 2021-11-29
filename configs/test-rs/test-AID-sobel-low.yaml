@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test
+      root_path: /home/ww020823/yxc/dataset/selfAID/AID-test-low
   wrapper:
     name: sr-paired
     args:

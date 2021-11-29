@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import MultiStepLR,CosineAnnealingLR
+from torch.optim.lr_scheduler import MultiStepLR, CosineAnnealingLR
 from torchvision.utils import save_image
 from tqdm import tqdm
 import sys
@@ -14,7 +14,6 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-#from test_x import eval
 from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss, ContrastLoss
 
 def batched_predict(model, lr, ls):
@@ -142,9 +141,9 @@ def train(train_loader, model, optimizer):
 
 
     train_dataset = config['train_dataset']
-    inp_size = train_dataset['wrapper']['args']['inp_size']
+    #inp_size = train_dataset['wrapper']['args']['inp_size']
     scale = train_dataset['wrapper']['args']['scale']
-    bs = train_dataset['batch_size']
+    #bs = train_dataset['batch_size']
 
 
     data_norm = config['data_norm']
@@ -178,9 +177,9 @@ def train(train_loader, model, optimizer):
         gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
         loss_dual = criterion_char(pred_dual, gt_dual)
 
-        loss = loss_char + loss_edge + loss_ssim + loss_dual
+        loss = loss_char + loss_edge + loss_dual + 0.1*loss_ssim
 
-        print_loss = 1
+        print_loss = 0
         if print_loss:
             print(f"char: {loss_char}")
             print(f"edge: {loss_edge}")
@@ -292,7 +291,7 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-
+        print(args.config)
     #保存的checkpoint路径
     save_name = args.name
     if save_name is None:

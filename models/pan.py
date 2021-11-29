@@ -9,9 +9,8 @@ from common import compute_num_params
 
 class PA(nn.Module):
     '''PA is pixel attention'''
-
     def __init__(self, nf):
-        super(PA, self).__init__()
+        super().__init__()
         self.conv = nn.Conv2d(nf, nf, 1)
         self.sigmoid = nn.Sigmoid()
 
@@ -19,14 +18,11 @@ class PA(nn.Module):
         y = self.conv(x)
         y = self.sigmoid(y)
         out = torch.mul(x, y)
-
         return out
 
-
 class PAConv(nn.Module):
-
     def __init__(self, nf, k_size=3):
-        super(PAConv, self).__init__()
+        super().__init__()
         self.k2 = nn.Conv2d(nf, nf, 1)  # 1x1 convolution nf->nf
         self.sigmoid = nn.Sigmoid()
         self.k3 = nn.Conv2d(nf, nf, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)  # 3x3 convolution
@@ -48,7 +44,7 @@ class SCPA(nn.Module):
     """
 
     def __init__(self, nf, reduction=2, stride=1, dilation=1):
-        super(SCPA, self).__init__()
+        super().__init__()
         group_width = nf // reduction
 
         self.conv1_a = nn.Conv2d(nf, group_width, kernel_size=1, bias=False)
@@ -93,15 +89,16 @@ class PAN(nn.Module):
         in_nc = 3
         out_nc = 3
 
-        # SCPA
-        SCPA_block_f = functools.partial(SCPA, nf=nf, reduction=2)
         self.scale = scale
 
         ### first convolution
         self.conv_first = nn.Conv2d(in_nc, nf, 3, 1, 1, bias=True)
 
         ### main blocks
-        self.SCPA_trunk = arch_util.make_layer(SCPA_block_f, nb)
+        m_SCPA_trunk = []
+        for _ in range(nb):
+            m_SCPA_trunk.append(SCPA(nf=nf, reduction=2))
+        self.SCPA_trunk = nn.Sequential(*m_SCPA_trunk)
         self.trunk_conv = nn.Conv2d(nf, nf, 3, 1, 1, bias=True)
 
         #### upsampling

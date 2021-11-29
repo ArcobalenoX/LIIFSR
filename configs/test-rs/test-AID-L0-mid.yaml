@@ -2,13 +2,13 @@ test_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test-grad
+      hr_dir: /home/ww020823/yxc/dataset/selfAID/AID-test-mid
+      L0_dir: /home/ww020823/yxc/dataset/selfAID/AID-test-mid-l0.1k5-grad
       cache: none
   wrapper:
     name: LO-wrappers
     args:
-      scale: 3
+      scale: 4
   batch_size: 1
 
 data_norm:

@@ -10,7 +10,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import csv
 import numpy as np
 from models import models
-from train_L0 import batched_predict
+from train_l0 import batched_predict
 from utils import calc_psnr, ssim
 
 
@@ -20,9 +20,9 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx2/epoch-best.pth')
-    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test')
-    parser.add_argument('--lsdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test-high-grad')
-    parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test')
+    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test')
+    parser.add_argument('--lsdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test-low-grad')
+    parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test')
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
@@ -31,15 +31,15 @@ if __name__ == '__main__':
     #et = time.time()
     #print(f"{os.path.basename(args.lr)} spend time {(et-st):.3f}s")
 
-    scale = 4
+    scale = 2
     lr_dir = args.lrdir
     hr_dir = args.hrdir
     ls_dir = args.lsdir
-    sr_dir = os.path.join('testimg', args.model.split('/')[1])
-    #sr_dir = r"testimg/WHURS19_test_high_edsrblx2"
+    sr_dir = os.path.join('testimg', args.model.split('/')[-2])
+    #sr_dir = r"testimg/WHURS19_samxhighx2_low"
     if not os.path.exists(sr_dir):
         os.makedirs(sr_dir)
-    result_csv = os.path.join(sr_dir, args.model.split('/')[1]+".csv")
+    result_csv = os.path.join(sr_dir, args.model.split('/')[-2]+".csv")
 
     psnr_cnt = []
     ssim_cnt = []
