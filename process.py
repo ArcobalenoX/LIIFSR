@@ -1,52 +1,38 @@
-import matplotlib.pyplot as plt
-from PIL import Image
-import os
 from PIL import Image, ImageDraw
-import glob, os
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import cv2
 import os
-from PIL import Image, ImageDraw
-import glob, os
-
+import glob
 
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"])
 
-def crop_ROI():
-    fin = '/home/guanwp/zhangwenlong/paperresult/ESRGAN/Set5_ESRGAN/'
-    fout = fin + 'result' + '/'
-    for file in os.listdir(fin):
+def crop_ROI(dir,):
+    fout = dir + 'result' + '/'
+    for file in os.listdir(dir):
         if is_image_file(file):
-            file_fullname = os.path.join(fin, file)
+            file_fullname = os.path.join(dir, file)
             img = Image.open(file_fullname)
-
             a = [201, 112, 503, 188]
             box = (a)
             ROI = img.crop(box)
-
             out_path = fout + '/' + file
             ROI.save(out_path)
 
 
-def cv2_crop():
-    fin = '/home/guanwp/zhangwenlong/paperresult/SRGANx4_RANK_3style_V1_esrgan_pre_46d7/val_set14/'
-    fout = 'result' + '/'
-    for file in os.listdir(fin):
+def cv2_crop(in_dir, out_dir, x=0, y=0, w=100):
+    for file in os.listdir(in_dir):
         if is_image_file(file):
-            file_fullname = os.path.join(fin, file)
+            file_fullname = os.path.join(in_dir, file)
             img = Image.open(file_fullname)
-
-            x = 216
-            y = 266
-            w = 206
             a = [x, y, x + w, y + w]
             box = (a)
             ROI = img.crop(box)
+
             # upscale
 
-            out_path = os.path.join(fout, file)
+            out_path = os.path.join(out_dir, file)
             ROI.save(out_path)
 
             im = cv2.imread(file_fullname)
@@ -54,17 +40,12 @@ def cv2_crop():
             cv2.imshow("image", im)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
-            out_draw = os.path.join(fout, "rect/" + file)
+            out_draw = os.path.join(out_dir, "rect/" + file)
             cv2.imwrite(out_draw, im)
 
-def crop():
-    dir = 'D:\Documents\截图/'  # 图片所在目录
-
+def crop(dir, x=0, y=0 , width=100):
+    #dir = 'D:\Documents\截图/'  # 图片所在目录
     # 选框左上角坐标(x, y)，宽度width，高度自动计算得出
-    x = 0
-    y = 0
-    width = 100
-
     # 获取图像
     pyFile = glob.glob(os.path.join(dir, "*.png"))
     pyFile += glob.glob(os.path.join(dir, "*.jpg"))
@@ -97,14 +78,9 @@ def crop():
         im.save(os.path.join(result_path, img_name + '_ori_image.png'))
 
 
-def scale_crop():
-    dir = '*******************'  # the direction of the result
-
+def scale_crop(dir, x=80, y=100, width=200, scale=4):
+    # the direction of the result
     # the(x, y), and the width
-    x = 80
-    y = 100
-    width = 200
-    scale = 4
 
     # capture an image
     pyFile = glob.glob(os.path.join(dir, "*.png"))
@@ -139,4 +115,8 @@ def scale_crop():
         # Save submap and original image with marquee
         im_.save(os.path.join(result_path, img_name + '_sub_image.png'))
         im.save(os.path.join(result_path, img_name + '_ori_image.png'))
+
+if __name__ == '__main__':
+    scale_crop("testimg/crop_ori",scale=1)
+
 
