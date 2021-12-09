@@ -32,12 +32,12 @@ def torch_image_bicubic(img_path, scale):
 
 if __name__ == "__main__":
     testset_dir = r"/home/ww020823/yxc/dataset/WHU-RS19-test/GT"
-    testset_dir = r"/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test"
-    testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test-low"
-    testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test"
-    scale = 2
+    #testset_dir = r"/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test"
+    #testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test-low"
+    #testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test"
+    scale = 3
 
-    sr_dir = "testimg/AID_bicubicx2sr"
+    sr_dir = "testimg/bicubicx2sr"
     if not os.path.exists(sr_dir):
         os.mkdir(sr_dir)
 

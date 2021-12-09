@@ -19,14 +19,14 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx2/epoch-best.pth')
-    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/LR/x4')
+    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/LR/x3')
     parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/GT')
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
     model_name = args.model.split('/')[-2]
 
-    scale = 4
+    scale = 3
     lr_dir = args.lrdir
     hr_dir = args.hrdir
     sr_dir = os.path.join('testimg', model_name)
