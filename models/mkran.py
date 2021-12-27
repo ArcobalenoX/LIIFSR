@@ -2,8 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params , Get_gradient_nopadding
-
+from common import conv, CALayer, PALayer, Upsampler, compute_num_params
 
 class MKRA(nn.Module):
     def __init__(self, n_feats):
@@ -34,7 +33,6 @@ class MKRAN(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
         n_colors = 3
-
         #define identity branch
         m_identity = []
         m_identity.append(conv(n_colors, n_feats))
@@ -58,33 +56,23 @@ class MKRAN(nn.Module):
         self.fusion = conv(n_feats*3, n_colors)
 
     def forward(self, x, l0):
-
         inp = self.identity(x)
-        #print("inp", inp.shape)
-
         res = self.residual(x)
-        #print("res ", res.shape)
-
         l0grad = self.smoothgrad(l0)
-        #print("l0grad ", l0grad.shape)
-
-        #y = inp+res+l0grad
         y = torch.cat([inp, res, l0grad], dim=1)
-
         y = self.fusion(y)
-
         return y
 
-@register('mkdg_low')
-def mkdg_low(scale=4):
-    return MKRAN(n_resblocks=20, n_feats=64, scale=scale)
+@register('mkran_low')
+def mkran_low(scale=4):
+    return MKRAN(n_resblocks=10, n_feats=32, scale=scale)
 
-@register('mkdg_mid')
-def mkdg_low(scale=4):
-    return MKRAN(n_resblocks=20, n_feats=64, scale=scale)
+@register('mkran_mid')
+def mkran_mid(scale=4):
+    return MKRAN(n_resblocks=15, n_feats=48, scale=scale)
 
-@register('mkdg_high')
-def mkdg_low(scale=4):
+@register('mkran_high')
+def mkran_high(scale=4):
     return MKRAN(n_resblocks=20, n_feats=64, scale=scale)
 
 
@@ -92,10 +80,10 @@ def mkdg_low(scale=4):
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
-    model = MKRAN(n_resblocks=10, n_feats=32, scale=4).cuda()
+    model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
     y = model(x, l)
     #print(model)
-    param_nums = compute_num_params(model)#,False)
+    param_nums = compute_num_params(model, False)
     print(param_nums)
     print(y.shape)
 

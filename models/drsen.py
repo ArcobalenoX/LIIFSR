@@ -60,7 +60,7 @@ class DRSEN(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = DRSEN(scale=2)
+    model = DRSEN(scale=4)
     y = model(x)
     print(model)
     param_nums = utils.compute_num_params(model, True)

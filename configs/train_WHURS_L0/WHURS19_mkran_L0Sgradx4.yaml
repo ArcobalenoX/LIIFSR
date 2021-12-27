@@ -4,7 +4,7 @@ train_dataset:
     args:
       hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
       L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-train-grad
-      repeat: 1
+      repeat: 3
       cache: in_memory
   wrapper:
     name: LO-wrappers
@@ -27,7 +27,7 @@ val_dataset:
     args:
       inp_size: 96
       scale: 4
-  batch_size: 10
+  batch_size: 24
 
 
 data_norm:

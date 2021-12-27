@@ -6,7 +6,7 @@ test_dataset:
   wrapper:
     name: sr-paired
     args:
-      scale: 3
+      scale: 2
   batch_size: 1
 
 data_norm:
