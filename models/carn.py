@@ -83,7 +83,7 @@ class CARN_M(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = CARN_M(scale=4)
+    model = CARN_M(scale=2)
     y = model(x)
     print(model)
     param_nums = compute_num_params(model)

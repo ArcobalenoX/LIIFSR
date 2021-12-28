@@ -144,4 +144,4 @@ if __name__ == '__main__':
     y = model(x)
     print(model)
     print(y.shape)
-    print("param_nums:", compute_num_params(model))
+    print("param_nums:", compute_num_params(model,False))

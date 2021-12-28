@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-import utils
 from models import register
 from common import conv, compute_num_params
 
@@ -39,10 +37,10 @@ class LGCNET(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = LGCNET(scale=4)
+    model = LGCNET(scale=8)
     y = model(x)
     print(model)
-    param_nums = compute_num_params(model)
+    param_nums = compute_num_params(model,False)
     print(param_nums)
     print(y.shape)
 

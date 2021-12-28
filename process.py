@@ -78,7 +78,7 @@ def crop(dir, x=0, y=0 , width=100):
         im.save(os.path.join(result_path, img_name + '_ori_image.png'))
 
 
-def scale_crop(dir, x=80, y=100, width=200, scale=4):
+def scale_crop(dir, x=80, y=100, width=200, scale=3):
     # the direction of the result
     # the(x, y), and the width
 
@@ -86,7 +86,7 @@ def scale_crop(dir, x=80, y=100, width=200, scale=4):
     pyFile = glob.glob(os.path.join(dir, "*.png"))
     pyFile += glob.glob(os.path.join(dir, "*.jpg"))
     pyFile += glob.glob(os.path.join(dir, "*.bmp"))
-    result_path = os.path.join(dir, "result")
+    result_path = os.path.join(dir, "crop")
 
     # if the in result
     if not os.path.exists(result_path):
@@ -117,6 +117,6 @@ def scale_crop(dir, x=80, y=100, width=200, scale=4):
         im.save(os.path.join(result_path, img_name + '_ori_image.png'))
 
 if __name__ == '__main__':
-    scale_crop("testimg/crop_ori",scale=1)
+    scale_crop("testimg/river42-x4",x=350, y=350, width=200, scale=3)
 
 

@@ -138,7 +138,7 @@ class RCAN(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = RCAN(n_feats=64, scale=4)
+    model = RCAN(n_feats=64, scale=8)
     y = model(x)
     print(model)
     param_nums = compute_num_params(model, True)

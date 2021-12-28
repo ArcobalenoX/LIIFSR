@@ -59,7 +59,7 @@ class MSRResNet(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = MSRResNet(scale=2)
+    model = MSRResNet(scale=8)
     y = model(x)
     print(model)
     print(y.shape)

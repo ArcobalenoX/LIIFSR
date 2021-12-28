@@ -67,7 +67,7 @@ class SobelConv2d(nn.Module):
                                              requires_grad=False)
 
     def forward(self, x):
-        #if torch.cuda.is_available():
+        # if torch.cuda.is_available():
         #    self.sobel_factor = self.sobel_factor.cuda()
         #    if isinstance(self.bias, nn.Parameter):
         #        self.bias = self.bias.cuda()
@@ -80,6 +80,8 @@ class SobelConv2d(nn.Module):
         out = F.conv2d(x, sobel_weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
         return out
+
+
 
 
 class EDCNN(nn.Module):

@@ -15,11 +15,11 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='testimg/div2klrx8/0801x8.png')
+    parser.add_argument('--input', default='testimg/WHUedx-x2/airport_41.jpg')
     parser.add_argument('--model', default='weights/edsr-baseline-liif.pth')
     parser.add_argument('--resolution', default='1350,2040') #SR_H,SR_W
-    parser.add_argument('--scale', default=4)
-    parser.add_argument('--output', default='testimg/nearest.png')
+    parser.add_argument('--scale', default=2)
+    parser.add_argument('--output', default='test.png')
     parser.add_argument('--gpu', default='0')
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu

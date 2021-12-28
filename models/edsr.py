@@ -198,7 +198,7 @@ def make_edsr(n_resblocks=32, n_feats=256, res_scale=0.1,
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = make_edsr_baseline(n_resblocks=16, n_feats=64, scale=4)
+    model = make_edsr_baseline(n_resblocks=16, n_feats=64, scale=8)
     y = model(x)
     #print(model)
     print(y.shape)

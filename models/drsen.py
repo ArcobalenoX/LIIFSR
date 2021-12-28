@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-from argparse import Namespace
-
 import utils
 from models import register
 from common import conv, SELayer, Upsampler
@@ -60,10 +58,10 @@ class DRSEN(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = DRSEN(scale=4)
+    model = DRSEN(scale=8)
     y = model(x)
-    print(model)
-    param_nums = utils.compute_num_params(model, True)
+    #print(model)
+    param_nums = utils.compute_num_params(model, False)
     print(param_nums)
     print(y.shape)
 
