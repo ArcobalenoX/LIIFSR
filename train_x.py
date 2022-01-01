@@ -130,7 +130,7 @@ def train(train_loader, model, optimizer):
 
     criterion_char = CharbonnierLoss()
     criterion_edge = EdgeLoss()
-    criterion_ssim = SSIMLoss()
+    #criterion_ssim = SSIMLoss()
 
     train_dataset = config['train_dataset']
     inp_size = train_dataset['wrapper']['args']['inp_size']
@@ -162,15 +162,15 @@ def train(train_loader, model, optimizer):
 
         loss_char = criterion_char(pred, gt)
         loss_edge = criterion_edge(pred, gt)
-        loss_ssim = criterion_ssim(pred, gt)
 
-        pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
-        gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
-        loss_dual = criterion_char(pred_dual, gt_dual)
+        #loss_ssim = criterion_ssim(pred, gt)
+        #pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
+        #gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
+        #loss_dual = criterion_char(pred_dual, gt_dual)
 
-        loss = loss_char + loss_edge + loss_dual + (1-loss_ssim)
+        loss = loss_char + loss_edge #+ loss_dual + (1-loss_ssim)
 
-        print_loss = 1
+        print_loss = 0
         if print_loss:
             print(f"char: {loss_char}")
             print(f"edge: {loss_edge}")
