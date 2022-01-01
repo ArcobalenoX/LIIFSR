@@ -11,7 +11,7 @@ train_dataset:
       inp_size: 48
       scale: 4
       augment: true
-  batch_size: 40
+  batch_size: 30
 
 val_dataset:
   dataset:

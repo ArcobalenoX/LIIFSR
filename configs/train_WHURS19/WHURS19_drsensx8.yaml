@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfRSSCN/RSSCN-train
+      root_path: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
       repeat: 1
       cache: in_memory
   wrapper:
@@ -11,13 +11,13 @@ train_dataset:
       inp_size: 48
       scale: 8
       augment: true
-  batch_size: 30
+  batch_size: 100
 
 val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfRSSCN/RSSCN-test
+      root_path: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
       repeat: 1
       cache: in_memory
   wrapper:
@@ -33,11 +33,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: edsr-baseline
+  name: drsens
   args:
+    upsampling: true
     scale: 8
-    no_upsampling: false
-
 
 optimizer:
   name: adam

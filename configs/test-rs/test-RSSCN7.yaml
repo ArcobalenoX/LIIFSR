@@ -1,0 +1,15 @@
+test_dataset:
+  dataset:
+    name: image-folder
+    args:
+      root_path: /home/ww020823/yxc/dataset/selfRSSCN/RSSCN-test
+  wrapper:
+    name: sr-paired
+    args:
+      scale: 2
+  batch_size: 1
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
