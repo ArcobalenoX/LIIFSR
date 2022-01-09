@@ -43,39 +43,7 @@ def cv2_crop(in_dir, out_dir, x=0, y=0, w=100):
             out_draw = os.path.join(out_dir, "rect/" + file)
             cv2.imwrite(out_draw, im)
 
-def crop(dir, x=0, y=0 , width=100):
-    #dir = 'D:\Documents\截图/'  # 图片所在目录
-    # 选框左上角坐标(x, y)，宽度width，高度自动计算得出
-    # 获取图像
-    pyFile = glob.glob(os.path.join(dir, "*.png"))
-    pyFile += glob.glob(os.path.join(dir, "*.jpg"))
-    pyFile += glob.glob(os.path.join(dir, "*.bmp"))
-    result_path = os.path.join(dir, "result")
 
-    # 判断是否存在result子目录，若不存在则创建
-    if not os.path.exists(result_path):
-        os.mkdir(result_path)
-
-    # 遍历图片
-    for img_path in pyFile:
-        im = Image.open(img_path)
-        draw = ImageDraw.Draw(im)
-
-        aspect_ratio = im.size[0] / im.size[1]  # 长宽比
-        # 截取选区图像
-        im_ = im.crop((x, y, x + width, (y + width) // aspect_ratio))
-        # 框出选区
-        draw.rectangle((x, y, x + width, (y + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
-
-        im_ = im_.resize(im.size)  # 调用resize函数将子图放大到原图大小
-
-        # 获取文件名
-        _, img_name = os.path.split(img_path)
-        img_name, _ = os.path.splitext(img_name)
-
-        # 保存子图与含有选框的原图
-        im_.save(os.path.join(result_path, img_name + '_sub_image.png'))
-        im.save(os.path.join(result_path, img_name + '_ori_image.png'))
 
 
 def scale_crop(dir, x=80, y=100, width=200, scale=3):
