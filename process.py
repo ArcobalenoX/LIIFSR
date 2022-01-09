@@ -63,9 +63,9 @@ def crop(dir, x=0, y=0 , width=100):
 
         aspect_ratio = im.size[0] / im.size[1]  # 长宽比
         # 截取选区图像
-        im_ = im.crop((x, y, x + width, (x + width) // aspect_ratio))
+        im_ = im.crop((x, y, x + width, (y + width) // aspect_ratio))
         # 框出选区
-        draw.rectangle((x, y, x + width, (x + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
+        draw.rectangle((x, y, x + width, (y + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
 
         im_ = im_.resize(im.size)  # 调用resize函数将子图放大到原图大小
 
@@ -99,9 +99,9 @@ def scale_crop(dir, x=80, y=100, width=200, scale=3):
 
         aspect_ratio = im.size[0] / im.size[1]  # Aspect ratio
         # Intercepting a selection image
-        im_ = im.crop((x, y, x + width, (x + width) // aspect_ratio))
+        im_ = im.crop((x, y, x + width, (y + width) // aspect_ratio))
         # Box out of the selection
-        draw.rectangle((x, y, x + width, (x + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
+        draw.rectangle((x, y, x + width, (y + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
 
         # im_ = im_.resize(im.size) # Call the resize function to enlarge the submap to the original image size
         width1 = int(im_.size[0] * scale)
