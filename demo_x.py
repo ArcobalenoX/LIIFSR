@@ -23,13 +23,13 @@ if __name__ == '__main__':
     parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/GT')
     args = parser.parse_args()
 
-    model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
-    model_name = args.model.split('/')[-2]
+    model = models.make(torch.load(args.model+"/epoch-last.pth")['model'], load_sd=True).cuda()
+    model_name = args.model.split('/')[-1]
 
-    scale = 3
+    scale = int(model_name[-1])
     lr_dir = args.lrdir
     hr_dir = args.hrdir
-    sr_dir = os.path.join('testimg', model_name)
+    sr_dir = os.path.join('WHURS', model_name)
     #sr_dir = r"testimg/WHURS19_test_high_edsrblx2"
     if not os.path.exists(sr_dir):
         os.makedirs(sr_dir)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
             ssim_cnt.append(ssim_v)
 
             transforms.ToPILImage()(pred[0].cpu()).save(os.path.join(sr_dir, name).replace('jpg', 'png'))
-            print(name, psnr_v, ssim_v)
+            #print(name, psnr_v, ssim_v)
             writer.writerow([name, psnr_v, ssim_v])
         print(np.mean(psnr_cnt))
         print(np.mean(ssim_cnt))

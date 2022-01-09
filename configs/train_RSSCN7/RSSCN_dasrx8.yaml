@@ -3,7 +3,7 @@ train_dataset:
     name: image-folder
     args:
       root_path: /home/ww020823/yxc/dataset/selfRSSCN/RSSCN-train
-      repeat: 1
+      repeat: 3
       cache: in_memory
   wrapper:
     name: sr-paired
@@ -11,7 +11,7 @@ train_dataset:
       inp_size: 48
       scale: 8
       augment: true
-  batch_size: 100
+  batch_size: 20
 
 val_dataset:
   dataset:

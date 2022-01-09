@@ -34,36 +34,40 @@ if __name__ == "__main__":
     testset_dir = r"/home/ww020823/yxc/dataset/WHU-RS19-test/GT"
     #testset_dir = r"/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test"
     #testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test-low"
-    #testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test"
-    scale = 3
+    testset_dir = r"/home/ww020823/yxc/dataset/selfRSSCN/RSSCN-test"
 
-    sr_dir = "testimg/bicubicx2sr"
+    scale = 2
+
+    sr_dir = "testimg/RSSCNbicubicx"+str(scale)
     if not os.path.exists(sr_dir):
         os.mkdir(sr_dir)
 
     val_psnr = utils.Averager()
     val_ssim = utils.Averager()
 
-    for i in os.listdir(testset_dir):
-        img_path = os.path.join(testset_dir, i)
-        if is_image_file(img_path):
-            #tpsnr, tssim = torch_image_bicubic(img_path, scale)
-            hr = Image.open(img_path)
-            hr = ToTensor()(hr)
-            c, h, w = hr.shape
-            lr = utils.resize_fn(hr, (h // scale, w // scale))
-            sr = utils.resize_fn(lr, (h, w))
-            #ToPILImage()(sr).save(os.path.join(sr_dir, i).replace('jpg', 'png'))
+    txt_path = os.path.join(sr_dir,"bicubicx"+str(scale)+".txt")
+    with open(txt_path,"w") as t:
+        for i in os.listdir(testset_dir):
+            img_path = os.path.join(testset_dir, i)
+            if is_image_file(img_path):
+                #tpsnr, tssim = torch_image_bicubic(img_path, scale)
+                hr = Image.open(img_path)
+                hr = ToTensor()(hr)
+                c, h, w = hr.shape
+                lr = utils.resize_fn(hr, (h // scale, w // scale))
+                sr = utils.resize_fn(lr, (h, w))
+                ToPILImage()(sr).save(os.path.join(sr_dir, i).replace('jpg', 'png'))
 
-            bhr = torch.unsqueeze(hr, 0)
-            bsr = torch.unsqueeze(sr, 0)
-            tpsnr = utils.calc_psnr(bsr, bhr)
-            tssim = utils.ssim(bsr, bhr)
+                bhr = torch.unsqueeze(hr, 0)
+                bsr = torch.unsqueeze(sr, 0)
+                tpsnr = utils.calc_psnr(bsr, bhr)
+                tssim = utils.ssim(bsr, bhr)
 
-            val_psnr.add(tpsnr.item())
-            val_ssim.add(tssim.item())
+                val_psnr.add(tpsnr.item())
+                val_ssim.add(tssim.item())
 
-            print(f"{i} psnr:{tpsnr.item():.4f}  ssim:{tssim.item():.4f} ")
+                t.write(f"{i} psnr:{tpsnr.item():.4f}  ssim:{tssim.item():.4f} \n")
+                print(f"{i} psnr:{tpsnr.item():.4f}  ssim:{tssim.item():.4f} ")
     print(f"psnr:{val_psnr.item():.4f}")
     print(f"ssim:{val_ssim.item():.4f}")
 

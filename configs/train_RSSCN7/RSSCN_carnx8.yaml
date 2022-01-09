@@ -24,7 +24,7 @@ val_dataset:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 3
+      scale: 8
   batch_size: 10
 
 

@@ -23,7 +23,8 @@ class RDAB(nn.Module):
         xm = self.conv3(xm)
         p = self.pa(xm)
         s = self.sa(xm)
-        y = p + s
+        #y = p + s
+        y = p+s+iden
         return y
 
 @register('dasr')

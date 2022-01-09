@@ -1,6 +1,8 @@
 import argparse
 import os
 import random
+import time
+
 import numpy as np
 import yaml
 import math
@@ -26,7 +28,6 @@ if __name__ == '__main__':
     parser.add_argument('--config')
     parser.add_argument('--model')
     parser.add_argument('--gpu', default='0')
-    parser.add_argument('--scale', default=2)
     parser.add_argument('--save_sr', default=False)
 
     args = parser.parse_args()
@@ -40,7 +41,7 @@ if __name__ == '__main__':
 
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
-    spec['wrapper']['args']['scale'] = int(args.scale)
+    spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 
@@ -50,6 +51,8 @@ if __name__ == '__main__':
 
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
-
+    st = time.time()
     psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    et = time.time()
     print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+    print(f"cost time {et-st}")
