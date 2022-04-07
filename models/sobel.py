@@ -59,12 +59,9 @@ class SobelConv2d(nn.Module):
                 self.sobel_weight[idx, :, 0, -1] = 2
         
         # Define the trainable sobel factor
-        if requires_grad:
-            self.sobel_factor = nn.Parameter(torch.ones(size=(out_channels, 1, 1, 1), dtype=torch.float32),
-                                             requires_grad=True)
-        else:
-            self.sobel_factor = nn.Parameter(torch.ones(size=(out_channels, 1, 1, 1), dtype=torch.float32),
-                                             requires_grad=False)
+        self.sobel_factor = nn.Parameter(torch.ones(size=(out_channels, 1, 1, 1), dtype=torch.float32),
+                                             requires_grad=requires_grad)
+
 
     def forward(self, x):
         # if torch.cuda.is_available():
