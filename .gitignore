@@ -14,3 +14,4 @@ save/*/tensorboard
 *.pth
 *.mp4
 
+*.xlsx
