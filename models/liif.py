@@ -85,7 +85,7 @@ class LIIF(nn.Module):
                 rel_coord[:, :, 0] *= feat.shape[-2]
                 rel_coord[:, :, 1] *= feat.shape[-1]
                 inp = torch.cat([q_feat, rel_coord], dim=-1) #[N,SR_H*SR_W,C*9+2]
-
+ 
                 if self.cell_decode:
                     rel_cell = cell.clone()#[N,SR_H*SR_W,2]
                     rel_cell[:, :, 0] *= feat.shape[-2]
