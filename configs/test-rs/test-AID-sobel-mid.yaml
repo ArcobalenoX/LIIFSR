@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfAID/AID-test-mid
+      root_path: data/selfAID/AID-test-mid
   wrapper:
     name: sr-paired
     args:

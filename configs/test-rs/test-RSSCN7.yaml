@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfRSSCN/RSSCN-test
+      root_path: data/selfRSSCN/RSSCN-test
   wrapper:
     name: sr-paired
     args:

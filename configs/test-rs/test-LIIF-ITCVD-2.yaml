@@ -2,8 +2,8 @@ test_dataset:
   dataset:
     name: paired-image-folders
     args:
-      root_path_1: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_test_patch/X2
-      root_path_2: /home/ww020823/yxc/dataset/ITCVD_patch/ITCVD_test_patch/HR
+      root_path_1: data/ITCVD_patch/ITCVD_test_patch/X2
+      root_path_2: data/ITCVD_patch/ITCVD_test_patch/HR
   wrapper:
     name: sr-implicit-paired
     args: {}

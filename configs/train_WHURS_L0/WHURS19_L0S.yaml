@@ -2,8 +2,8 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-train/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-train
+      hr_dir: data/WHU-RS19-train/GT
+      L0_dir: data/selfWHURS/smooth/smooth-whurs-train
       repeat: 1
       cache: none
   wrapper:
@@ -18,8 +18,8 @@ val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: /home/ww020823/yxc/dataset/WHU-RS19-test/GT
-      L0_dir: /home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test
+      hr_dir: data/WHU-RS19-test/GT
+      L0_dir: data/selfWHURS/smooth/smooth-whurs-test
       repeat: 1
       cache: none
   wrapper:

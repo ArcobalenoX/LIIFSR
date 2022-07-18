@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-nocross-train
+      root_path: data/selfWHURS/high-sobel-nocross-train
       repeat: 15
       cache: in_memory
   wrapper:
@@ -17,7 +17,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/selfWHURS/high-sobel-test
+      root_path: data/selfWHURS/high-sobel-test
       repeat: 1
       cache: in_memory
 

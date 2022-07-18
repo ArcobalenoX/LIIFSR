@@ -20,9 +20,9 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx2/epoch-best.pth')
-    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test')
-    parser.add_argument('--lsdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/smooth/smooth-whurs-test-low-grad')
-    parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/selfWHURS/sobel/low-sobel-test')
+    parser.add_argument('--lrdir', default=r'data/selfWHURS/sobel/low-sobel-test')
+    parser.add_argument('--lsdir', default=r'data/selfWHURS/smooth/smooth-whurs-test-low-grad')
+    parser.add_argument('--hrdir', default=r'data/selfWHURS/sobel/low-sobel-test')
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()

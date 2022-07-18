@@ -19,8 +19,8 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx2/epoch-best.pth')
-    parser.add_argument('--lrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/LR/x3')
-    parser.add_argument('--hrdir', default=r'/home/ww020823/yxc/dataset/WHU-RS19-test/GT')
+    parser.add_argument('--lrdir', default=r'data/WHU-RS19-test/LR/x3')
+    parser.add_argument('--hrdir', default=r'data/WHU-RS19-test/GT')
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model+"/epoch-last.pth")['model'], load_sd=True).cuda()

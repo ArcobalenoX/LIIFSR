@@ -1,12 +1,11 @@
 __pycache__
-.idea/*
+.idea
 .vscode
 load
 testimg
 vis
 scripts
 save
-save/*/tensorboard
 
 
 *.jpg
@@ -15,3 +14,5 @@ save/*/tensorboard
 *.mp4
 
 *.xlsx
+*.csv
+*.txt

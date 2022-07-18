@@ -31,10 +31,10 @@ def torch_image_bicubic(img_path, scale):
 
 
 if __name__ == "__main__":
-    testset_dir = r"/home/ww020823/yxc/dataset/WHU-RS19-test/GT"
-    #testset_dir = r"/home/ww020823/yxc/dataset/selfWHURS/sobel/high-sobel-test"
-    #testset_dir = r"/home/ww020823/yxc/dataset/selfAID/AID-test-low"
-    testset_dir = r"/home/ww020823/yxc/dataset/selfRSSCN/RSSCN-test"
+    testset_dir = r"data/WHU-RS19-test/GT"
+    #testset_dir = r"data/selfWHURS/sobel/high-sobel-test"
+    #testset_dir = r"data/selfAID/AID-test-low"
+    testset_dir = r"data/selfRSSCN/RSSCN-test"
 
     scale = 2
 

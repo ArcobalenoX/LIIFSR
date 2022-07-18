@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-train
+      root_path: data/WHURS19/WHU-RS19-train
       repeat: 5
       cache: in_memory
   wrapper:
@@ -18,7 +18,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: /home/ww020823/yxc/dataset/WHURS19/WHU-RS19-test
+      root_path: data/WHURS19/WHU-RS19-test
       first_k: 10
       repeat: 10
       cache: in_memory
