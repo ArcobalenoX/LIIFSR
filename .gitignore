@@ -1,11 +1,15 @@
 __pycache__
 .idea
 .vscode
+
 load
+data
+
 testimg
 vis
-scripts
 save
+result
+
 
 
 *.jpg
