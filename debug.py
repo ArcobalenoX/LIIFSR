@@ -20,3 +20,7 @@ with torch.no_grad():
     feat = model.gen_feat(lr)
 featimg= transforms.ToPILImage()(feat[0][0])
 plt.imshow(featimg)
+
+
+
+

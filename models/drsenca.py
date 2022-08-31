@@ -5,8 +5,9 @@ from argparse import Namespace
 
 import utils
 from models import register
-from common import conv, Upsampler, CoordAtt
-
+from common import conv, Upsampler
+from attention.CoordAttention import CoordAtt
+ 
 
 class ResBlock(nn.Module):
     def __init__(self, n_feats):

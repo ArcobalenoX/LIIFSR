@@ -59,3 +59,7 @@ if __name__=='__main__':
  
     dp = depthpointconv(3,6).to(device)
     print(summary(dp,input_size=(3,32,32)))
+
+
+
+    

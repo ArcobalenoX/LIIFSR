@@ -2,8 +2,9 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, Upsampler, CoordAtt, compute_num_params
-
+from common import conv, Upsampler, compute_num_params
+from attention.CoordAttention import CoordAtt
+ 
 
 class ResBlock(nn.Module):
     def __init__(self, n_feats):
