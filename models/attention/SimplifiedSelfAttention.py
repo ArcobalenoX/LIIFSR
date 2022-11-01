@@ -77,8 +77,8 @@ class SimplifiedScaledDotProductAttention(nn.Module):
 
 
 if __name__ == '__main__':
-    input=torch.randn(50,49,64)
-    ssa = SimplifiedScaledDotProductAttention(d_model=64, h=8)
+    input=torch.randn(50,49,512)
+    ssa = SimplifiedScaledDotProductAttention(d_model=512, h=8)
     output=ssa(input,input,input)
     print(output.shape)
 

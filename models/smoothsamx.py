@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from models import register
-from common import compute_num_params, conv, SELayer, Upsampler, SAM, PALayer
-
+from common import compute_num_params, conv, Upsampler, SAM, PALayer
+#小论文使用（forward无SAM）
 class RSPA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()

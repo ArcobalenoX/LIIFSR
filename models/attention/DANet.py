@@ -2,8 +2,8 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import init
-from attention.SelfAttention import ScaledDotProductAttention
-from attention.SimplifiedSelfAttention import SimplifiedScaledDotProductAttention
+from model.attention.SelfAttention import ScaledDotProductAttention
+from model.attention.SimplifiedSelfAttention import SimplifiedScaledDotProductAttention
 
 class PositionAttentionModule(nn.Module):
 
@@ -41,8 +41,8 @@ class DAModule(nn.Module):
 
     def __init__(self,d_model=512,kernel_size=3,H=7,W=7):
         super().__init__()
-        self.position_attention_module=PositionAttentionModule(d_model=d_model,kernel_size=kernel_size,H=H,W=W)
-        self.channel_attention_module=ChannelAttentionModule(d_model=d_model,kernel_size=kernel_size,H=H,W=W)
+        self.position_attention_module=PositionAttentionModule(d_model=512,kernel_size=3,H=7,W=7)
+        self.channel_attention_module=ChannelAttentionModule(d_model=512,kernel_size=3,H=7,W=7)
     
     def forward(self,input):
         bs,c,h,w=input.shape

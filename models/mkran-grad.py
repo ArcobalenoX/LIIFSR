@@ -31,8 +31,8 @@ class MKRA(nn.Module):
         y = y+iden
         return y
 
-@register('mkran')
-class MKRAN(nn.Module):
+@register('mkrangrad')
+class MKRANG(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
         n_colors = 3
@@ -75,23 +75,23 @@ class MKRAN(nn.Module):
         y = self.fusion(y)
         return y
 
-@register('mkran_low')
-def mkran_low(scale=4):
-    return MKRAN(n_resblocks=10, n_feats=32, scale=scale)
+@register('mkrangrad_low')
+def mkran_grad_low(scale=4):
+    return MKRANG(n_resblocks=10, n_feats=32, scale=scale)
 
-@register('mkran_mid')
-def mkran_mid(scale=4):
-    return MKRAN(n_resblocks=15, n_feats=48, scale=scale)
+@register('mkrangrad_mid')
+def mkran_grad_mid(scale=4):
+    return MKRANG(n_resblocks=15, n_feats=48, scale=scale)
 
-@register('mkran_high')
-def mkran_high(scale=4):
-    return MKRAN(n_resblocks=20, n_feats=64, scale=scale)
+@register('mkrangrad_high')
+def mkran_grad_high(scale=4):
+    return MKRANG(n_resblocks=20, n_feats=64, scale=scale)
 
 
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
-    model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
+    model = MKRANG(n_resblocks=20, n_feats=64, scale=4).cuda()
     y = model(x)
     #print(model)
     param_nums = compute_num_params(model, False)
