@@ -35,7 +35,7 @@ data_norm:
 model:
   name: swin
   args:
-    scale: 4
+    scale: 3
 
 
 
