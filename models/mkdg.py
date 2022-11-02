@@ -32,7 +32,9 @@ class MKRA(nn.Module):
         y = y+iden
         return y
 
-@register('mkdg')
+#融合LR梯度图和L0smooth梯度图
+
+#@register('mkdg')
 class MKDG(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
@@ -84,16 +86,21 @@ class MKDG(nn.Module):
         y = inp + res_up + grad_up + l0grad_up
         return y
 
+@register('mkdg')
+def mkdg(n_resblocks=20, n_feats=64, scale=4):
+    return MKDG(n_resblocks=n_resblocks, n_feats=n_feats, scale=scale)
+
+
 @register('mkdg_low')
 def mkdg_low(scale=4):
-    return MKDG(n_resblocks=20, n_feats=64, scale=scale)
+    return MKDG(n_resblocks=10, n_feats=64, scale=scale)
 
 @register('mkdg_mid')
-def mkdg_low(scale=4):
-    return MKDG(n_resblocks=20, n_feats=64, scale=scale)
+def mkdg_mid(scale=4):
+    return MKDG(n_resblocks=15, n_feats=64, scale=scale)
 
 @register('mkdg_high')
-def mkdg_low(scale=4):
+def mkdg_high(scale=4):
     return MKDG(n_resblocks=20, n_feats=64, scale=scale)
 
 
@@ -101,7 +108,7 @@ def mkdg_low(scale=4):
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
-    model = MKDG(n_resblocks=10, n_feats=64, scale=4).cuda()
+    model = MKDG(n_resblocks=20, n_feats=64, scale=4).cuda()
     y = model(x, l)
     print(model)
     param_nums = compute_num_params(model)

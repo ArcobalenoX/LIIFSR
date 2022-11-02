@@ -10,7 +10,7 @@ import models
 from utils import make_coord
 from test import batched_predict
 
-
+#原LIIF
 if __name__ == '__main__':
     torch.cuda.empty_cache()
 

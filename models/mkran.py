@@ -76,11 +76,11 @@ def mkran_high(scale=4):
     return MKRAN(n_resblocks=20, n_feats=64, scale=scale)
 
 
-
+#小论文权重（参数量）
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
-    model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
+    model = MKRAN(n_resblocks=15, n_feats=48, scale=4).cuda()
     y = model(x, l)
     #print(model)
     param_nums = compute_num_params(model, False)

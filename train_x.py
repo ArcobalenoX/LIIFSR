@@ -272,7 +272,7 @@ def main(config_, save_path):
         log(', '.join(log_info))
         writer.flush()
 
-
+#在L1上增加了loss
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config')

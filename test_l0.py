@@ -16,7 +16,7 @@ import utils
 from train_l0 import batched_predict, eval
 from torch.nn.utils import prune
 
-
+#测试加入了L0smooth的网络
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 random.seed(0)
@@ -50,24 +50,13 @@ if __name__ == '__main__':
     #print(model_spec['sd'])
     #print(model_spec)
     model = models.make(model_spec, load_sd=True).cuda()
-    print(model)
+    #print(model)
 
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
 
     psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
     print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
-
-
-    print(model.residual[1].conv1.bias)
-    prune.random_unstructured(model.residual[1].conv1.bias, name='bias', amount=0.3)
-    print(model.residual[1].conv1.bias)
-    parments = utils.compute_num_params(model, True)
-    print("params:", parments)
-
-    psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
-
 
 
 

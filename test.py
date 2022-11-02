@@ -93,7 +93,7 @@ def eval_psnr(loader, model, data_norm=None, eval_type=None, eval_bsize=None, ve
     return val_psnr.item(), val_ssim.item()
 
 
-
+#原LIIF测试
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config')

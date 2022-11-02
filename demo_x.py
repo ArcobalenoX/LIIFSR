@@ -14,7 +14,7 @@ from train_x import batched_predict
 from utils import calc_psnr, ssim
 
 
-
+#通常网络
 if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()

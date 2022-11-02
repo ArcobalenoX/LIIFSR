@@ -9,9 +9,10 @@ import sys
 sys.path.append("models")
 import utils
 from models import models
-from demo_x import single_image
+
 os.environ['CUDA_VISIBLE_DEVICES'] ='0'
 
+#测试LR文件夹并保存SR图像
 if __name__ == '__main__':
 
     torch.cuda.empty_cache()    
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default=r"save\WHURS19-edsrblx2\epoch-last.pth")  
     parser.add_argument('--lrdir', default=r'E:\Code\Python\datas\RS\WHU-RS19-test\LR\x2')
-    parser.add_argument('--srdir', default=r'testimg/WHURS19-edsrblx2')
+    parser.add_argument('--srdir', default=r'testimg/WHURS19_edsrblx2')
     parser.add_argument('--hrdir', default=r'E:\Code\Python\datas\RS\WHU-RS19-test\GT')
     args = parser.parse_args()
 

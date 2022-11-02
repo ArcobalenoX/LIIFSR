@@ -6,7 +6,6 @@ from common import conv, CALayer, PALayer, Upsampler, compute_num_params
 from gradient import Get_gradient_nopadding
 from attention.ExternalAttention import ExternalAttention
 
-
 class MKRA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()
@@ -31,7 +30,7 @@ class MKRA(nn.Module):
         y = y+iden
         return y
 
-@register('mkrangrad')
+#@register('mkrangrad')
 class MKRANG(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
@@ -75,18 +74,9 @@ class MKRANG(nn.Module):
         y = self.fusion(y)
         return y
 
-@register('mkrangrad_low')
-def mkran_grad_low(scale=4):
-    return MKRANG(n_resblocks=10, n_feats=32, scale=scale)
-
-@register('mkrangrad_mid')
-def mkran_grad_mid(scale=4):
-    return MKRANG(n_resblocks=15, n_feats=48, scale=scale)
-
-@register('mkrangrad_high')
-def mkran_grad_high(scale=4):
-    return MKRANG(n_resblocks=20, n_feats=64, scale=scale)
-
+@register('mkrangrad')
+def mkran_grad(n_resblocks=20, n_feats=64, scale=4):
+    return MKRANG(n_resblocks=n_resblocks, n_feats=n_feats, scale=scale)
 
 
 if __name__ == '__main__':

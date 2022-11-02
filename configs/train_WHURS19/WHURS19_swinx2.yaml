@@ -9,7 +9,7 @@ train_dataset:
   wrapper:
     name: sr-paired
     args:
-      scale: 4
+      scale: 2
       augment: true
   batch_size: 1
 
@@ -24,7 +24,7 @@ val_dataset:
   wrapper:
     name: sr-paired
     args:
-      scale: 4
+      scale: 2
   batch_size: 1
 
 
@@ -35,7 +35,7 @@ data_norm:
 model:
   name: swin
   args:
-    scale: 4
+    scale: 2
 
 
 

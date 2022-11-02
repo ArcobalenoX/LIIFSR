@@ -22,7 +22,7 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
-
+#测试通常网络
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config')
