@@ -1,6 +1,7 @@
 # modified from: https://github.com/thstkdgus35/EDSR-PyTorch
 
 import math
+import time
 from argparse import Namespace
 
 import torch
@@ -199,8 +200,10 @@ def make_edsr(n_resblocks=32, n_feats=256, res_scale=0.1,
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
     model = make_edsr_baseline(n_resblocks=16, n_feats=64, scale=8)
+    t = time.time()
     y = model(x)
     #print(model)
+    print("time ",time.time()-t)
     print(y.shape)
     print("param_nums:", compute_num_params(model,False))
 

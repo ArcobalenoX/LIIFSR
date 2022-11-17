@@ -5,7 +5,7 @@ from . import drsen, drsenca, drsenmk, drsencbam, drsenmkca, drsenmkpa
 
 from . import arch_util, rcan, srresnet, carn, pan, lgcnet, vdsr
 
-from . import smoothsamx, mkdg, mkran, dasr
+from . import smoothsamx, mkdg, mkran, dasr, mkgea
 
 from . import swinir
 

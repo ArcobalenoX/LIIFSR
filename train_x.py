@@ -16,6 +16,8 @@ from models import models
 import utils
 from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss, SSIMLoss
 
+import lpips
+
 def batched_predict(model, inp):
     model.eval()
     with torch.no_grad():
@@ -23,7 +25,7 @@ def batched_predict(model, inp):
     return pred
 
 
-def eval(loader, model, data_norm=None, verbose=False):
+def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     model.eval()
     if data_norm is None:
         data_norm = {
@@ -38,7 +40,7 @@ def eval(loader, model, data_norm=None, verbose=False):
     gt_sub = torch.FloatTensor(t['sub']).cuda()
     gt_div = torch.FloatTensor(t['div']).cuda()
 
-    max_psnr = 0
+    max_lpips = 0
     max_ssim = 0
 
     val_psnr = utils.Averager()
@@ -50,7 +52,6 @@ def eval(loader, model, data_norm=None, verbose=False):
             batch[k] = v.cuda()
         inp = (batch['inp'] - inp_sub) / inp_div
 
-
         pred = batched_predict(model,inp)
         pred = (pred * gt_div + gt_sub).clamp_(0, 1)
 
@@ -60,9 +61,9 @@ def eval(loader, model, data_norm=None, verbose=False):
         ssim = utils.ssim(pred, batch['gt'])
         val_ssim.add(ssim.item(), inp.shape[0])
 
-        if psnr > max_psnr:
-            max_psnr = psnr
-            #save_image(pred, f"testimg/max_psnr.jpg", nrow=int(math.sqrt(pred.shape[0])))
+        if psnr > max_lpips:
+            max_lpips = psnr
+            #save_image(pred, f"testimg/max_lpips.jpg", nrow=int(math.sqrt(pred.shape[0])))
         if ssim > max_ssim:
             max_ssim = ssim
             #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
@@ -71,6 +72,45 @@ def eval(loader, model, data_norm=None, verbose=False):
             pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
 
     return val_psnr.item(), val_ssim.item()
+
+def eval_lpips(loader, model, data_norm=None, verbose=False):
+    model.eval()
+    if data_norm is None:
+        data_norm = {
+            'inp': {'sub': [0], 'div': [1]},
+            'gt': {'sub': [0], 'div': [1]}
+        }
+
+    t = data_norm['inp']
+    inp_sub = torch.FloatTensor(t['sub']).cuda()
+    inp_div = torch.FloatTensor(t['div']).cuda()
+    t = data_norm['gt']
+    gt_sub = torch.FloatTensor(t['sub']).cuda()
+    gt_div = torch.FloatTensor(t['div']).cuda()
+
+    # Linearly calibrated models (LPIPS)
+    lpips_fn = lpips.LPIPS(net='alex').cuda() # Can also set net = 'squeeze' or 'vgg'
+
+    val_lpips = utils.Averager()
+
+    pbar = tqdm(loader, leave=False, desc='val')
+    for batch in pbar:
+        for k, v in batch.items():
+            batch[k] = v.cuda()
+        inp = (batch['inp'] - inp_sub) / inp_div
+
+        pred = batched_predict(model,inp)
+        pred = (pred * gt_div + gt_sub).clamp_(0, 1)
+
+        lpipsv = lpips_fn.forward(pred, batch['gt'])
+        val_lpips.add(lpipsv.item(), inp.shape[0])
+
+        if verbose:
+            pbar.set_description(f'lpips {val_lpips.item():.4f}')
+
+    return val_lpips.item()
+
+
 
 def make_data_loader(spec, tag=''):
     if spec is None:
@@ -174,7 +214,7 @@ def train(train_loader, model, optimizer):
         if print_loss:
             print(f"char: {loss_char}")
             print(f"edge: {loss_edge}")
-            print(f"ssim: {loss_ssim}")
+            #print(f"ssim: {loss_ssim}")
             print(f"loss_dual: {loss_dual}")
             print(f"total_loss: {loss}")
 

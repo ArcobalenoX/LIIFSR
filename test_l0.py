@@ -13,7 +13,7 @@ sys.path.append("models")
 import datasets
 import models
 import utils
-from train_l0 import batched_predict, eval
+from train_l0 import batched_predict, eval_psnr_ssim,eval_lpips
 from torch.nn.utils import prune
 
 #测试加入了L0smooth的网络
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     spec = config['test_dataset']
-    spec['wrapper']['args']['scale'] = int(args.scale)
+    #spec['wrapper']['args']['scale'] = int(args.scale)
     dataset = datasets.make(spec['dataset'])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
@@ -55,8 +55,13 @@ if __name__ == '__main__':
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
 
-    psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+    #psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    #print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+
+    lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    print(f'result: lpips={lpips:.4f} ')
+
+
 
 
 

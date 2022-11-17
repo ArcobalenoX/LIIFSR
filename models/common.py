@@ -6,7 +6,8 @@ import numpy as np
 
 
 def compute_num_params(model, text=True):
-    tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
+    #tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
+    tot = sum([ p.nelement() for p in model.parameters() ])
     if text:
         if tot >= 1e6:
             return '{:.1f}M'.format(tot / 1e6)
@@ -14,6 +15,14 @@ def compute_num_params(model, text=True):
             return '{:.1f}K'.format(tot / 1e3)
     else:
         return tot
+
+def compute_flops(model,images):
+    """
+        images like torch.rand(1, 3, 224, 224)
+    """
+    from thop import profile
+    flops, params = profile(model, (images,))
+    print('flops: ', flops, 'params: ', params)
 
 
 def conv(in_channels, out_channels, kernel_size=3, bias=True, stride=1):

@@ -15,6 +15,8 @@ import datasets
 from models import models
 import utils
 from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss, ContrastLoss
+import lpips
+
 
 def batched_predict(model, lr, ls):
     model.eval()
@@ -23,7 +25,7 @@ def batched_predict(model, lr, ls):
     return pred
 
 
-def eval(loader, model, data_norm=None, verbose=False):
+def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     model.eval()
     if data_norm is None:
         data_norm = {
@@ -76,6 +78,55 @@ def eval(loader, model, data_norm=None, verbose=False):
             pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
 
     return val_psnr.item(), val_ssim.item()
+
+
+def eval_lpips(loader, model, data_norm=None, verbose=False):
+    model.eval()
+    if data_norm is None:
+        data_norm = {
+            'lr': {'sub': [0], 'div': [1]},
+            'ls': {'sub': [0], 'div': [1]},
+            'gt': {'sub': [0], 'div': [1]}
+        }
+
+    t = data_norm['lr']
+    lr_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
+    lr_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    t = data_norm['ls']
+    ls_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
+    ls_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    t = data_norm['gt']
+    gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
+    gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
+
+
+    # Linearly calibrated models (LPIPS)
+    lpips_fn = lpips.LPIPS(net='alex').cuda() # Can also set net = 'squeeze' or 'vgg'
+
+    val_lpips_v = utils.Averager()
+
+    pbar = tqdm(loader, leave=False, desc='val')
+    for batch in pbar:
+        for k, v in batch.items():
+            batch[k] = v.cuda()
+        lr = (batch['lr'] - lr_sub) / lr_div
+        ls = (batch['ls'] - ls_sub) / ls_div
+
+        pred = batched_predict(model, lr, ls)
+        pred = (pred * gt_div + gt_sub).clamp_(0, 1)
+
+        lpips_v = lpips_fn.forward(pred, batch['gt'])
+        val_lpips_v.add(lpips_v.item(), lr.shape[0])
+
+        if verbose:
+            pbar.set_description(f'lpips {val_lpips_v.item():.4f}')
+
+    return val_lpips_v.item()
+
+
+
+
+
 
 def make_data_loader(spec, tag=''):
     if spec is None:

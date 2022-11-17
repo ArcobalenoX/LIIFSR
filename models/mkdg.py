@@ -34,7 +34,7 @@ class MKRA(nn.Module):
 
 #融合LR梯度图和L0smooth梯度图
 
-#@register('mkdg')
+@register('mkdg')
 class MKDG(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
@@ -85,10 +85,6 @@ class MKDG(nn.Module):
 
         y = inp + res_up + grad_up + l0grad_up
         return y
-
-@register('mkdg')
-def mkdg(n_resblocks=20, n_feats=64, scale=4):
-    return MKDG(n_resblocks=n_resblocks, n_feats=n_feats, scale=scale)
 
 
 @register('mkdg_low')

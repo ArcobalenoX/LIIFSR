@@ -1,10 +1,15 @@
 import math
+import time
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params
+from common import conv, CALayer, PALayer, Upsampler, compute_num_params, compute_flops
 from gradient import Get_gradient_nopadding
 from attention.ExternalAttention import ExternalAttention
+
+"""
+多核 梯度 EA注意力
+"""
 
 class MKRA(nn.Module):
     def __init__(self, n_feats):
@@ -13,25 +18,24 @@ class MKRA(nn.Module):
         self.brb_1x3 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(1, 3), padding=(0, 1))
         self.brb_3x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(3, 1), padding=(1, 0))
         self.brb_1x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=1, padding=0)
-        self.act = nn.ReLU(True)
-        self.ca = CALayer(n_feats, 8)
-        self.pa = PALayer(n_feats, 8)
+        self.act = nn.LeakyReLU(0.01,True)
+        self.ca = CALayer(n_feats, n_feats//4)
+        self.pa = PALayer(n_feats, n_feats//4)
 
     def forward(self, x):
-        iden = x
         x33 = self.brb_3x3(x)
         x13 = self.brb_1x3(x)
         x31 = self.brb_3x1(x)
         x11 = self.brb_1x1(x)
         xm = torch.cat([x33, x13, x31, x11], dim=1)
-        xm = self.act(xm)
-        y = self.ca(xm+iden)
-        y = self.pa(y)
-        y = y+iden
+        y = self.act(xm)
+        y = self.ca(y+x)
+        y = self.pa(y+x)
+        y = y+x
         return y
 
-#@register('mkrangrad')
-class MKRANG(nn.Module):
+@register('mkgea')
+class MKGEA(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
         n_colors = 3
@@ -60,31 +64,32 @@ class MKRANG(nn.Module):
 
     def forward(self, x):
         inp = self.identity(x)
+
         gard = Get_gradient_nopadding()(x)
         grad = self.gradbranch(gard)
         res = self.residual(x)
-        print(res.shape)
+
         res  = res.permute(0,2,3,1)
-        print(res.shape)
-        res = self.ea(res)
-        print(res.shape)
+        res  = self.ea(res)
         res  = res.permute(0,3,1,2)
-        print(res.shape)
+
         y = torch.cat([inp, res, grad], dim=1)
         y = self.fusion(y)
         return y
 
-@register('mkrangrad')
-def mkran_grad(n_resblocks=20, n_feats=64, scale=4):
-    return MKRANG(n_resblocks=n_resblocks, n_feats=n_feats, scale=scale)
 
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
-    model = MKRANG(n_resblocks=20, n_feats=64, scale=4).cuda()
+    model = MKGEA(n_resblocks=10, n_feats=32, scale=4).cuda()
+    t = time.time()
+
     y = model(x)
     #print(model)
-    param_nums = compute_num_params(model, False)
+    print("time ",time.time()-t)
+    param_nums = compute_num_params(model, True)
     print(param_nums)
     print(y.shape)
+
+    #compute_flops(model,x)
 

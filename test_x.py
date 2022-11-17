@@ -15,13 +15,15 @@ sys.path.append("models")
 import datasets
 import models
 import utils
-from train_x import eval
+from train_x import eval_psnr_ssim,eval_lpips
 
 
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
+
+
 #测试通常网络
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -41,7 +43,7 @@ if __name__ == '__main__':
 
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
-    spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])
+    #spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 
@@ -52,7 +54,17 @@ if __name__ == '__main__':
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
     st = time.time()
-    psnr, ssim = eval(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    #psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    lpips = eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
     et = time.time()
-    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+
+
+
+    #print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+    print(f'lpips={lpips:.4f}')
     print(f"cost time {et-st}")
+
+
+
+
+

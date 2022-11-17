@@ -31,7 +31,7 @@ def batched_predict(model, inp, coord, cell, bsize):
     return pred
 
 
-def eval_psnr(loader, model, data_norm=None, eval_type=None, eval_bsize=None, verbose=False):
+def eval_psnr_ssim(loader, model, data_norm=None, eval_type=None, eval_bsize=None, verbose=False):
     model.eval()
 
     if data_norm is None:
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     model_spec = torch.load(args.model)['model']
     model = models.make(model_spec, load_sd=True).cuda()
 
-    psnr, ssim = eval_psnr(loader, model,
+    psnr, ssim = eval_psnr_ssim(loader, model,
                            data_norm=config.get('data_norm'),
                            eval_type=config.get('eval_type'),
                            eval_bsize=config.get('eval_bsize'),
