@@ -44,9 +44,6 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
     gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
 
-    max_psnr = 0
-    max_ssim = 0
-
     val_psnr = utils.Averager()
     val_ssim = utils.Averager()
 
@@ -66,13 +63,6 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
 
         ssim = utils.ssim(pred, batch['gt'])
         val_ssim.add(ssim.item(), lr.shape[0])
-
-        if psnr > max_psnr:
-            max_psnr = psnr
-            #save_image(pred, f"testimg/max_psnr.jpg", nrow=int(math.sqrt(pred.shape[0])))
-        if ssim > max_ssim:
-            max_ssim = ssim
-            #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
 
         if verbose:
             pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
@@ -122,10 +112,6 @@ def eval_lpips(loader, model, data_norm=None, verbose=False):
             pbar.set_description(f'lpips {val_lpips_v.item():.4f}')
 
     return val_lpips_v.item()
-
-
-
-
 
 
 def make_data_loader(spec, tag=''):

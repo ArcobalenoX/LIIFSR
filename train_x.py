@@ -30,7 +30,7 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     if data_norm is None:
         data_norm = {
             'inp': {'sub': [0], 'div': [1]},
-            'gt': {'sub': [0], 'div': [1]}
+            'gt': {'sub': [0], 'div': [1]} 
         }
 
     t = data_norm['inp']
@@ -39,9 +39,6 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     t = data_norm['gt']
     gt_sub = torch.FloatTensor(t['sub']).cuda()
     gt_div = torch.FloatTensor(t['div']).cuda()
-
-    max_lpips = 0
-    max_ssim = 0
 
     val_psnr = utils.Averager()
     val_ssim = utils.Averager()
@@ -60,13 +57,6 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
 
         ssim = utils.ssim(pred, batch['gt'])
         val_ssim.add(ssim.item(), inp.shape[0])
-
-        if psnr > max_lpips:
-            max_lpips = psnr
-            #save_image(pred, f"testimg/max_lpips.jpg", nrow=int(math.sqrt(pred.shape[0])))
-        if ssim > max_ssim:
-            max_ssim = ssim
-            #save_image(pred, f"testimg/max_ssim.jpg", nrow=int(math.sqrt(pred.shape[0])))
 
         if verbose:
             pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
@@ -168,6 +158,7 @@ def train(train_loader, model, optimizer):
     model.train()
     train_loss = utils.Averager()
 
+    loss_L1 = nn.L1Loss()
     criterion_char = CharbonnierLoss()
     criterion_edge = EdgeLoss()
     #criterion_ssim = SSIMLoss()
@@ -200,15 +191,16 @@ def train(train_loader, model, optimizer):
             save_image(predimg, f"vis/predimg.jpg", nrow=int(math.sqrt(bs)))
             save_image(gtimg, f"vis/gtimg.jpg", nrow=int(math.sqrt(bs)))
 
+
         loss_char = criterion_char(pred, gt)
         loss_edge = criterion_edge(pred, gt)
-
         #loss_ssim = criterion_ssim(pred, gt)
         pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
         gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
         loss_dual = criterion_char(pred_dual, gt_dual)
-
         loss = loss_char + loss_edge + loss_dual #+ (1-loss_ssim)
+
+        #loss = loss_L1(pred, gt) #单独L1损失
 
         print_loss = 0
         if print_loss:
@@ -219,7 +211,6 @@ def train(train_loader, model, optimizer):
             print(f"total_loss: {loss}")
 
         train_loss.add(loss.item())
-
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -294,7 +285,7 @@ def main(config_, save_path):
                 model_ = model.module
             else:
                 model_ = model
-            val_psnr, val_ssim = eval(val_loader, model_, data_norm=config['data_norm'])
+            val_psnr, val_ssim = eval_psnr_ssim(val_loader, model_, data_norm=config['data_norm'])
 
             log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
             writer.add_scalars('psnr', {'val': val_psnr}, epoch)
@@ -327,7 +318,6 @@ if __name__ == '__main__':
     #载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-
 
     #保存的checkpoint路径
     save_name = args.name

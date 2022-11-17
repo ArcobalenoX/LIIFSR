@@ -18,7 +18,7 @@ class MKRA(nn.Module):
         self.brb_1x3 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(1, 3), padding=(0, 1))
         self.brb_3x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(3, 1), padding=(1, 0))
         self.brb_1x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=1, padding=0)
-        self.act = nn.LeakyReLU(0.01,True)
+        self.act = nn.LeakyReLU(0.01, True)
         self.ca = CALayer(n_feats, n_feats//4)
         self.pa = PALayer(n_feats, n_feats//4)
 
@@ -29,8 +29,8 @@ class MKRA(nn.Module):
         x11 = self.brb_1x1(x)
         xm = torch.cat([x33, x13, x31, x11], dim=1)
         y = self.act(xm)
-        y = self.ca(y+x)
-        y = self.pa(y+x)
+        y = self.ca(y)
+        y = self.pa(y)
         y = y+x
         return y
 
@@ -69,9 +69,9 @@ class MKGEA(nn.Module):
         grad = self.gradbranch(gard)
         res = self.residual(x)
 
-        res  = res.permute(0,2,3,1)
-        res  = self.ea(res)
-        res  = res.permute(0,3,1,2)
+        res = res.permute(0, 2, 3, 1)
+        res = self.ea(res)
+        res = res.permute(0, 3, 1, 2)
 
         y = torch.cat([inp, res, grad], dim=1)
         y = self.fusion(y)
