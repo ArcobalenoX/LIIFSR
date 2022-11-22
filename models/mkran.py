@@ -4,6 +4,7 @@ import torch.nn as nn
 from models import register
 from common import conv, CALayer, PALayer, Upsampler, compute_num_params
 
+#小论文参数量
 class MKRA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()
@@ -80,7 +81,7 @@ def mkran_high(scale=4):
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
-    model = MKRAN(n_resblocks=15, n_feats=48, scale=4).cuda()
+    model = MKRAN(n_resblocks=10, n_feats=32, scale=4).cuda()
     y = model(x, l)
     #print(model)
     param_nums = compute_num_params(model, False)

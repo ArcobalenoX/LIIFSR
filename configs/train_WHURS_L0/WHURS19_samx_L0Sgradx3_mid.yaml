@@ -38,6 +38,8 @@ data_norm:
 model:
   name: L0Smoothsamx
   args:
+    n_resblocks: 15
+    n_feats: 48
     scale: 3
 
 

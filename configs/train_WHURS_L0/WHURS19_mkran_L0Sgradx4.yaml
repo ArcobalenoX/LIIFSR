@@ -12,7 +12,7 @@ train_dataset:
       inp_size: 96
       scale: 4
       augment: true
-  batch_size: 10
+  batch_size: 20
 
 val_dataset:
   dataset:
@@ -27,7 +27,7 @@ val_dataset:
     args:
       inp_size: 96
       scale: 4
-  batch_size: 24
+  batch_size: 10
 
 
 data_norm:
@@ -38,6 +38,8 @@ data_norm:
 model:
   name: mkran
   args:
+    n_resblocks: 20
+    n_feats: 64
     scale: 4
 
 

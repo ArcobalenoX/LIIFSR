@@ -5,7 +5,7 @@ train_dataset:
       hr_dir: data/WHU-RS19-train/GT
       L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad
       repeat: 1
-      cache: none
+      cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
@@ -38,6 +38,8 @@ data_norm:
 model:
   name: L0Smoothsamx
   args:
+    n_resblocks: 20
+    n_feats: 64
     scale: 4
 
 

@@ -4,7 +4,7 @@ train_dataset:
     args:
       hr_dir: data/WHU-RS19-train/GT
       L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad
-      repeat: 1
+      repeat: 3
       cache: in_memory
   wrapper:
     name: LO-wrappers
@@ -12,7 +12,7 @@ train_dataset:
       inp_size: 96
       scale: 2
       augment: true
-  batch_size: 24
+  batch_size: 20
 
 val_dataset:
   dataset:
@@ -38,6 +38,8 @@ data_norm:
 model:
   name: mkran
   args:
+    n_resblocks: 20
+    n_feats: 64
     scale: 2
 
 

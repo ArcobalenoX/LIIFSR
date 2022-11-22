@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfWHURS/mid-sobel-train
+      root_path: data/selfWHURS/sobel/mid-sobel-train
       repeat: 12
       cache: in_memory
   wrapper:

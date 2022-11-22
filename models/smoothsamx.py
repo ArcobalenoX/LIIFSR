@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from models import register
-from common import compute_num_params, conv, Upsampler, SAM, PALayer
-#小论文使用（forward无SAM）
+from common import compute_num_params, conv, Upsampler, PALayer
+#小论文使用
 class RSPA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()
@@ -50,9 +50,6 @@ class L0SmoothSR(nn.Module):
         m_smoothgrad.append(Upsampler(conv, scale, n_feats))
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
-        self.sam = SAM(n_colors, kernel_size, True)
-        self.gradup = Upsampler(conv, scale, n_feats)
-
         self.fusion = conv(n_feats*3, 3, kernel_size)
 
 
@@ -81,7 +78,7 @@ def L0Smooth_high(scale=4):
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
     l = torch.rand(1, 3, 48, 48)
-    model = L0Smooth_high(scale=4)
+    model = L0SmoothSR(20, 64, scale=4)
     y = model(x, l)
     print(model)
     param_nums = compute_num_params(model)

@@ -4,8 +4,7 @@ train_dataset:
     args:
       root_path: data/WHU-RS19-train/GT
       repeat: 1
-      #cache: in_memory
-      cache: none
+      cache: in_memory
   wrapper:
     name: sr-paired
     args:

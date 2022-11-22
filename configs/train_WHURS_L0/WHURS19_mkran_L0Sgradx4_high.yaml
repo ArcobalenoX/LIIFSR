@@ -2,15 +2,15 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/selfWHURS/sobel/mid-sobel-cross-train
-      L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad-cross-mid
+      hr_dir: data/selfWHURS/sobel/high-sobel-cross-train
+      L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad-cross-high
       repeat: 3
       cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
       inp_size: 96
-      scale: 3
+      scale: 4
       augment: true
   batch_size: 10
 
@@ -18,15 +18,15 @@ val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/selfWHURS/sobel/mid-sobel-test
-      L0_dir: data/selfWHURS/smooth/smooth-whurs-test-mid-grad
+      hr_dir: data/selfWHURS/sobel/high-sobel-test
+      L0_dir: data/selfWHURS/smooth/smooth-whurs-test-high-grad
       repeat: 1
       cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
       inp_size: 96
-      scale: 3
+      scale: 4
   batch_size: 1
 
 
@@ -36,9 +36,11 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: mkdg_high
+  name: mkran
   args:
-    scale: 3
+    n_resblocks: 20
+    n_feats: 64
+    scale: 4
 
 
 

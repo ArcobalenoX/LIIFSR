@@ -5,7 +5,7 @@ train_dataset:
       hr_dir: data/selfWHURS/sobel/high-sobel-cross-train
       L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad-cross-high
       repeat: 3
-      cache: none
+      cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
@@ -21,7 +21,7 @@ val_dataset:
       hr_dir: data/selfWHURS/sobel/high-sobel-test
       L0_dir: data/selfWHURS/smooth/smooth-whurs-test-high-grad
       repeat: 1
-      cache: none
+      cache: in_memory
   wrapper:
     name: LO-wrappers
     args:
@@ -36,8 +36,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0Smoothhigh
+  name: L0Smoothsamx
   args:
+    n_resblocks: 20
+    n_feats: 64
     scale: 4
 
 

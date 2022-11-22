@@ -95,26 +95,26 @@ class RES2CAPAGRAD(nn.Module):
         self.get_grad = Get_laplacian_gradient()
         self.grad_up = Upsampler(conv, scale, n_colors)
 
-        self.fusion = conv(n_colors, n_colors)
+        #self.fusion = conv(n_colors, n_colors)
 
 
     def forward(self, x):
 
         inp = self.identity_up(self.identity(x))
-        print(inp.shape)
+        #print(inp.shape)
 
         grad = self.get_grad(x)
         grad_up = self.grad_up(grad)
-        print("grad", grad.shape)
-        print("grad_up", grad_up.shape)
+        #print("grad", grad.shape)
+        #print("grad_up", grad_up.shape)
 
         res = self.residual(x)
         res_up = self.residual_up(res)
-        print("res", res.shape)
-        print("res_up", res_up.shape)
+        #print("res", res.shape)
+        #print("res_up", res_up.shape)
 
         y = inp + res_up + grad_up
-        y = self.fusion(y)
+        #y = self.fusion(y)
         return y
 
 
