@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params , Get_gradient_nopadding
+from common import conv, CALayer, PALayer, Upsampler, compute_num_params , Get_sobel_gradient
 
 
 class MKRA(nn.Module):
@@ -63,7 +63,7 @@ class MKDG(nn.Module):
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
         self.smoothgrad_up = conv(n_feats, n_colors)
 
-        self.get_grad = Get_gradient_nopadding()
+        self.get_grad = Get_sobel_gradient()
         self.grad_up = Upsampler(conv, scale, n_colors)
 
     def forward(self, x, l0):

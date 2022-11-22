@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from models import register
 from common import conv, CALayer, PALayer, Upsampler, compute_num_params, compute_flops
-from gradient import Get_gradient_nopadding
+from common import Get_sobel_gradient
 from attention.ExternalAttention import ExternalAttention
 
 """
@@ -65,7 +65,7 @@ class MKGEA(nn.Module):
     def forward(self, x):
         inp = self.identity(x)
 
-        gard = Get_gradient_nopadding()(x)
+        gard = Get_sobel_gradient()(x)
         grad = self.gradbranch(gard)
         res = self.residual(x)
 
