@@ -295,7 +295,7 @@ def main(config_, save_path):
                 model_ = model.module
             else:
                 model_ = model
-            val_psnr, val_ssim = eval(val_loader, model_, data_norm=config['data_norm'])
+            val_psnr, val_ssim = eval_psnr_ssim(val_loader, model_, data_norm=config['data_norm'])
 
             log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
             writer.add_scalars('psnr', {'val': val_psnr}, epoch)

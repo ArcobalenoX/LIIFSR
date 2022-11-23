@@ -15,7 +15,7 @@ sys.path.append("models")
 import datasets
 import models
 import utils
-from train_x import eval_psnr_ssim,eval_lpips
+from train_x import eval_psnr_ssim, eval_lpips
 
 
 torch.manual_seed(0)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
-    #spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])
+    spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 

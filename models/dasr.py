@@ -5,8 +5,6 @@ from models import register
 from common import conv, PALayer, Upsampler, compute_num_params
 from attention.CBAM import SpatialAttention
 
-
-
 class RDAB(nn.Module):
     def __init__(self, n_feats):
         super().__init__()

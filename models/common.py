@@ -16,6 +16,7 @@ def compute_num_params(model, text=True):
     else:
         return tot
 
+
 def compute_flops(model,images):
     """
         images like torch.rand(1, 3, 224, 224)
@@ -59,6 +60,50 @@ class ResidualGroup(nn.Module):
         res = self.body(x)
         res += x
         return res
+
+
+class groupsconv(nn.Module):
+    '''
+    分组卷积
+    '''
+    def __init__(self, in_channel, out_channel, group):
+        super(groupsconv, self).__init__()
+        self.conv = nn.Conv2d(in_channels=in_channel,
+                              out_channels=out_channel,
+                              kernel_size=3,
+                              stride=1,
+                              padding=1,
+                              groups=group,
+                              bias=False)
+
+    def forward(self, input):
+        out = self.conv(input)
+        return out
+
+
+class depthpointconv(nn.Module):
+    '''
+    深度可分离卷积
+    '''
+    def __init__(self, in_ch, out_ch):
+        super(depthpointconv, self).__init__()
+        self.depth_conv = nn.Conv2d(in_channels=in_ch,
+                                    out_channels=in_ch,
+                                    kernel_size=3,
+                                    stride=1,
+                                    padding=1,
+                                    groups=in_ch)
+        self.point_conv = nn.Conv2d(in_channels=in_ch,
+                                    out_channels=out_ch,
+                                    kernel_size=1,
+                                    stride=1,
+                                    padding=0,
+                                    groups=1)
+
+    def forward(self, input):
+        out = self.depth_conv(input)
+        out = self.point_conv(out)
+        return out
 
 
 class Upsampler(nn.Sequential):
@@ -244,6 +289,7 @@ class DownSample(nn.Module):
         x = self.down(x)
         return x
 
+
 class UpSample(nn.Module):
     def __init__(self, in_channels,s_factor):
         super().__init__()
@@ -254,8 +300,7 @@ class UpSample(nn.Module):
         x = self.up(x)
         return x
 
-
-class Get_sobel_gradient(nn.Module):
+class Get_gradient(nn.Module):
     def __init__(self):
         super().__init__()
         kernel_v = [[0, -1, 0],
@@ -270,23 +315,40 @@ class Get_sobel_gradient(nn.Module):
         self.weight_v = nn.Parameter(data=kernel_v, requires_grad=False).cuda()
 
     def forward(self, x):
-        x0 = x[:, 0]
-        x1 = x[:, 1]
-        x2 = x[:, 2]
-        x0_v = F.conv2d(x0.unsqueeze(1), self.weight_v, padding=1)
-        x0_h = F.conv2d(x0.unsqueeze(1), self.weight_h, padding=1)
+        x_list = []
+        for i in range(x.shape[1]):
+            x_i = x[:, i]
+            x_i_v = F.conv2d(x_i.unsqueeze(1), self.weight_v, padding=1)
+            x_i_h = F.conv2d(x_i.unsqueeze(1), self.weight_h, padding=1)
+            x_i = torch.sqrt(torch.pow(x_i_v, 2) + torch.pow(x_i_h, 2) + 1e-6)
+            x_list.append(x_i)
+        x = torch.cat(x_list, dim = 1)
+        return x
 
-        x1_v = F.conv2d(x1.unsqueeze(1), self.weight_v, padding=1)
-        x1_h = F.conv2d(x1.unsqueeze(1), self.weight_h, padding=1)
 
-        x2_v = F.conv2d(x2.unsqueeze(1), self.weight_v, padding=1)
-        x2_h = F.conv2d(x2.unsqueeze(1), self.weight_h, padding=1)
+class Get_sobel_gradient(nn.Module):
+    def __init__(self):
+        super().__init__()
+        kernel_v = [[-1, -2, -1],
+                    [0, 0, 0],
+                    [1, 2, 1]]
+        kernel_h = [[-1, 0, 1],
+                    [-2, 0, 2],
+                    [-1, 0, 1]]
+        kernel_h = torch.FloatTensor(kernel_h).unsqueeze(0).unsqueeze(0)
+        kernel_v = torch.FloatTensor(kernel_v).unsqueeze(0).unsqueeze(0)
+        self.weight_h = nn.Parameter(data=kernel_h, requires_grad=False).cuda()
+        self.weight_v = nn.Parameter(data=kernel_v, requires_grad=False).cuda()
 
-        x0 = torch.sqrt(torch.pow(x0_v, 2) + torch.pow(x0_h, 2) + 1e-6)
-        x1 = torch.sqrt(torch.pow(x1_v, 2) + torch.pow(x1_h, 2) + 1e-6)
-        x2 = torch.sqrt(torch.pow(x2_v, 2) + torch.pow(x2_h, 2) + 1e-6)
-
-        x = torch.cat([x0, x1, x2], dim=1)
+    def forward(self, x):
+        x_list = []
+        for i in range(x.shape[1]):
+            x_i = x[:, i]
+            x_i_v = F.conv2d(x_i.unsqueeze(1), self.weight_v, padding=1)
+            x_i_h = F.conv2d(x_i.unsqueeze(1), self.weight_h, padding=1)
+            x_i = torch.sqrt(torch.pow(x_i_v, 2) + torch.pow(x_i_h, 2) + 1e-6)
+            x_list.append(x_i)
+        x = torch.cat(x_list, dim = 1)
         return x
 
 
@@ -300,11 +362,9 @@ class Get_laplacian_gradient(nn.Module):
         self.weight = nn.Parameter(data=kernel, requires_grad=False).cuda()
 
     def forward(self, x):
-        x0 = x[:, 0]
-        x1 = x[:, 1]
-        x2 = x[:, 2]
-        x0 = F.conv2d(x0.unsqueeze(1), self.weight, padding=1)
-        x1 = F.conv2d(x1.unsqueeze(1), self.weight, padding=1)
-        x2 = F.conv2d(x2.unsqueeze(1), self.weight, padding=1)
-        x = torch.cat([x0, x1, x2], dim=1)
+        x_list = []
+        for i in range(x.shape[1]):
+            x_i = F.conv2d(x[:, i].unsqueeze(1), self.weight, padding=1)
+            x_list.append(x_i)
+        x = torch.cat(x_list, dim = 1)
         return x

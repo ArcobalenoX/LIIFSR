@@ -4,6 +4,7 @@ import random
 import numpy as np
 import yaml
 import math
+import time
 import torch
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('--model')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--save_sr', default=False)
-    parser.add_argument('--scale', default=2)
+    parser.add_argument('--scale')
 
     args = parser.parse_args()
 
@@ -38,7 +39,8 @@ if __name__ == '__main__':
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     spec = config['test_dataset']
-    #spec['wrapper']['args']['scale'] = int(args.scale)
+    if args.scale is not None:
+        spec['wrapper']['args']['scale'] = int(args.scale)
     dataset = datasets.make(spec['dataset'])
     dataset = datasets.make(spec['wrapper'], args={'dataset': dataset})
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
@@ -54,13 +56,14 @@ if __name__ == '__main__':
 
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
-
+    st = time.time()
     psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
     print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
 
     lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
     print(f'result: lpips={lpips:.4f} ')
-
+    et = time.time()
+    print(f"cost time {et-st}")
 
 
 

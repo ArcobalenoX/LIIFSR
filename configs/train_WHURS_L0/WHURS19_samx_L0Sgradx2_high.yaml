@@ -36,7 +36,7 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: L0Smoothhigh
+  name: L0Smoothsamx
   args:
     n_resblocks: 20
     n_feats: 64
