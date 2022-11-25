@@ -8,9 +8,10 @@ train_dataset:
   wrapper:
     name: sr-paired
     args:
+      inp_size: 48
       scale: 2
       augment: true
-  batch_size: 1
+  batch_size: 10
 
 val_dataset:
   dataset:
@@ -22,8 +23,9 @@ val_dataset:
   wrapper:
     name: sr-paired
     args:
+      inp_size: 48
       scale: 2
-  batch_size: 1
+  batch_size: 10
 
 
 data_norm:
@@ -31,10 +33,10 @@ data_norm:
   gt: {sub: [0.5], div: [0.5]}
 
 model:
-  name: swin
+  name: rdn
   args:
     scale: 2
-
+    no_upsampling: false
 
 
 optimizer:

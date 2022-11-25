@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from models import register
 from common import compute_num_params, conv, Upsampler, PALayer, CALayer
+from common import SAM
+
 #小论文使用
 class RSPA(nn.Module):
     def __init__(self, n_feats):
@@ -34,7 +36,7 @@ class L0SmoothSR(nn.Module):
         m_identity.append(conv(n_colors, n_feats))
         m_identity.append(Upsampler(conv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
-        self.identity_up = conv(n_feats, n_colors)
+        #self.identity_up = conv(n_feats, n_colors)
 
         # define residual branch
         m_residual = []
@@ -51,7 +53,6 @@ class L0SmoothSR(nn.Module):
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
         self.fusion = conv(n_feats*3, 3, kernel_size)
-
 
     def forward(self, x, l):
         inp = self.identity(x)

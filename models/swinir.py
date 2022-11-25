@@ -862,6 +862,16 @@ def swin(scale=4):
                    embed_dim=60, num_heads=[6, 6, 6, 6], mlp_ratio=2, upsampler='pixelshuffledirect')
     return model
 
+@register('selfswin')
+def swin(height=600, width=600, window_size=8, embed_dim=60, scale=4):
+    height = (height // upscale // window_size + 1) * window_size
+    width = (width // upscale // window_size + 1) * window_size
+    model = SwinIR(upscale=upscale, img_size=(height, width),
+                   window_size=window_size, img_range=1., depths=[6, 6, 6, 6],
+                   embed_dim=embed_dim, num_heads=[6, 6, 6, 6], mlp_ratio=2, upsampler='pixelshuffledirect')
+    return model
+
+
 if __name__ == '__main__':
     upscale = 4
     window_size = 8

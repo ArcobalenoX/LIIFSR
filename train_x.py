@@ -196,8 +196,7 @@ def train(train_loader, model, optimizer):
         loss_edge = criterion_edge(pred, gt)
         #loss_ssim = criterion_ssim(pred, gt)
         pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
-        gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
-        loss_dual = criterion_char(pred_dual, gt_dual)
+        loss_dual = criterion_char(pred_dual, inp)
         loss = loss_char + loss_edge + loss_dual #+ (1-loss_ssim)
 
         #loss = loss_L1(pred, gt) #单独L1损失

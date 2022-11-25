@@ -209,10 +209,8 @@ def train(train_loader, model, optimizer):
         loss_char = criterion_char(pred, gt)
         loss_edge = criterion_edge(pred, gt)
         loss_ssim = 1-criterion_ssim(pred, gt)
-
         pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
-        gt_dual = F.interpolate(gt, scale_factor=1/scale, mode='bicubic')
-        loss_dual = criterion_char(pred_dual, gt_dual)
+        loss_dual = criterion_char(pred_dual, lr)
 
         loss = loss_char + loss_edge + loss_dual + 0.1*loss_ssim
 
@@ -221,8 +219,8 @@ def train(train_loader, model, optimizer):
             print(f"char: {loss_char}")
             print(f"edge: {loss_edge}")
             print(f"ssim: {loss_ssim}")
-            print(f"loss_dual: {loss_dual}")
-            print(f"total_loss: {loss}")
+            print(f"dual: {loss_dual}")
+            print(f"loss: {loss}")
 
         train_loss.add(loss.item())
         optimizer.zero_grad()

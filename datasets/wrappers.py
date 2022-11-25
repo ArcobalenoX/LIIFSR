@@ -206,7 +206,7 @@ class SRImplicitUniformVaried(Dataset):
 
 @register('sr-paired')
 class SRDownsampled(Dataset):
-    def __init__(self, dataset, inp_size=None, scale=2,augment=False):
+    def __init__(self, dataset, inp_size=None, scale=2, augment=False):
         self.dataset = dataset
         self.inp_size = inp_size
         self.scale = scale
