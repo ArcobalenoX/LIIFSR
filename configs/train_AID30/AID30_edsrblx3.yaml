@@ -4,7 +4,7 @@ train_dataset:
     args:
       root_path: data/selfAID/AID-train
       repeat: 1
-      cache: in_memory
+      cache: none
   wrapper:
     name: sr-paired
     args:
@@ -19,7 +19,7 @@ val_dataset:
     args:
       root_path: data/selfAID/AID-test
       repeat: 1
-      cache: in_memory
+      cache: none
   wrapper:
     name: sr-paired
     args:
