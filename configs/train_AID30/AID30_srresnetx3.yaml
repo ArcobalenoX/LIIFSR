@@ -2,14 +2,14 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/WHU-RS19-train/GT
+      root_path: data/selfAID/AID-train
       repeat: 1
-      cache: in_memory
+      cache: none
   wrapper:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
       augment: true
   batch_size: 40
 
@@ -17,14 +17,14 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/WHU-RS19-test/GT
+      root_path: data/selfAID/AID-test
       repeat: 1
-      cache: in_memory
+      cache: none
   wrapper:
     name: sr-paired
     args:
       inp_size: 48
-      scale: 2
+      scale: 3
   batch_size: 10
 
 
@@ -35,7 +35,7 @@ data_norm:
 model:
   name: srresnet
   args:
-    scale: 2
+    scale: 3
 
 
 optimizer:
