@@ -212,8 +212,6 @@ class psagrad(nn.Module):
         return y
 
 
-
-
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     model = psagrad(n_resblocks=20, n_feats=64, scale=4).cuda()
