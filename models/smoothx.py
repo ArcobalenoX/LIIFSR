@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from models import register
 from common import compute_num_params, conv, Upsampler, PALayer, CALayer
-from common import SAM
 
 #小论文使用
 class RSPA(nn.Module):
@@ -128,10 +127,10 @@ if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
     model = L0SmoothSR(20, 64, scale=4).cuda()
-    # model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
     y = model(x, l)
+    # model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
+    # y = model(x)
     print(model)
-    param_nums = compute_num_params(model)
-    print(param_nums)
-    print(y.shape)
+    print("param_nums  ", compute_num_params(model))
+    print("outpute  ", y.shape)
 

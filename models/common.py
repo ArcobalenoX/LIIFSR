@@ -7,7 +7,7 @@ import numpy as np
 
 def compute_num_params(model, text=True):
     #tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
-    tot = sum([ p.nelement() for p in model.parameters() ])
+    tot = sum([p.nelement() for p in model.parameters()])
     if text:
         if tot >= 1e6:
             return '{:.1f}M'.format(tot / 1e6)
@@ -17,13 +17,13 @@ def compute_num_params(model, text=True):
         return tot
 
 
-def compute_flops(model,images):
+def compute_flops(model, images):
     """
         images like torch.rand(1, 3, 224, 224)
     """
     from thop import profile
     flops, params = profile(model, (images,))
-    print('flops: ', flops, 'params: ', params)
+    print(f'flops: {flops}  params: {params}')
 
 
 def conv(in_channels, out_channels, kernel_size=3, bias=True, stride=1):
@@ -45,61 +45,23 @@ class ResBlock(nn.Module):
         y = y * self.res_scale + x
         return y
 
-# Residual Group (RG)
-class ResidualGroup(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
-        super().__init__()
-        modules_body = [
-            RCAB(
-                conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
-            for _ in range(n_resblocks)]
-        modules_body.append(conv(n_feat, n_feat, kernel_size))
-        self.body = nn.Sequential(*modules_body)
 
-    def forward(self, x):
-        res = self.body(x)
-        res += x
-        return res
-
-
+#分组卷积
 class groupsconv(nn.Module):
-    '''
-    分组卷积
-    '''
     def __init__(self, in_channel, out_channel, group):
         super(groupsconv, self).__init__()
-        self.conv = nn.Conv2d(in_channels=in_channel,
-                              out_channels=out_channel,
-                              kernel_size=3,
-                              stride=1,
-                              padding=1,
-                              groups=group,
-                              bias=False)
-
+        self.conv = nn.Conv2d(in_channels=in_channel, out_channels=out_channel, kernel_size=3, padding=1, groups=group)
     def forward(self, input):
         out = self.conv(input)
         return out
 
 
+#深度点卷积
 class depthpointconv(nn.Module):
-    '''
-    深度可分离卷积
-    '''
     def __init__(self, in_ch, out_ch):
         super(depthpointconv, self).__init__()
-        self.depth_conv = nn.Conv2d(in_channels=in_ch,
-                                    out_channels=in_ch,
-                                    kernel_size=3,
-                                    stride=1,
-                                    padding=1,
-                                    groups=in_ch)
-        self.point_conv = nn.Conv2d(in_channels=in_ch,
-                                    out_channels=out_ch,
-                                    kernel_size=1,
-                                    stride=1,
-                                    padding=0,
-                                    groups=1)
-
+        self.depth_conv =  nn.Conv2d(in_channels=in_ch, out_channels=in_ch, kernel_size=3, padding=1, groups=in_ch)
+        self.point_conv = nn.Conv2d(in_channels=in_ch, out_channels=out_ch, kernel_size=1, padding=0, groups=1)
     def forward(self, input):
         out = self.depth_conv(input)
         out = self.point_conv(out)
@@ -184,6 +146,23 @@ class RCAB(nn.Module):
     def forward(self, x):
         #res = self.body(x)
         res = self.body(x).mul(self.res_scale)
+        res += x
+        return res
+
+
+# Residual Group (RG)
+class ResidualGroup(nn.Module):
+    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
+        super().__init__()
+        modules_body = [
+            RCAB(
+                conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
+            for _ in range(n_resblocks)]
+        modules_body.append(conv(n_feat, n_feat, kernel_size))
+        self.body = nn.Sequential(*modules_body)
+
+    def forward(self, x):
+        res = self.body(x)
         res += x
         return res
 
@@ -280,7 +259,7 @@ class SAM(nn.Module):
 
 ##---------- Resizing Modules ----------
 class DownSample(nn.Module):
-    def __init__(self, in_channels,s_factor):
+    def __init__(self, in_channels, s_factor):
         super().__init__()
         self.down = nn.Sequential(nn.Upsample(scale_factor=0.5, mode='bilinear', align_corners=False),
                                   nn.Conv2d(in_channels, in_channels+s_factor, 1, stride=1, padding=0, bias=False))
@@ -291,7 +270,7 @@ class DownSample(nn.Module):
 
 
 class UpSample(nn.Module):
-    def __init__(self, in_channels,s_factor):
+    def __init__(self, in_channels, s_factor):
         super().__init__()
         self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
                                 nn.Conv2d(in_channels+s_factor, in_channels, 1, stride=1, padding=0, bias=False))
@@ -299,6 +278,7 @@ class UpSample(nn.Module):
     def forward(self, x):
         x = self.up(x)
         return x
+
 
 class Get_gradient(nn.Module):
     def __init__(self):
@@ -322,7 +302,7 @@ class Get_gradient(nn.Module):
             x_i_h = F.conv2d(x_i.unsqueeze(1), self.weight_h, padding=1)
             x_i = torch.sqrt(torch.pow(x_i_v, 2) + torch.pow(x_i_h, 2) + 1e-6)
             x_list.append(x_i)
-        x = torch.cat(x_list, dim = 1)
+        x = torch.cat(x_list, dim=1)
         return x
 
 
@@ -348,7 +328,7 @@ class Get_sobel_gradient(nn.Module):
             x_i_h = F.conv2d(x_i.unsqueeze(1), self.weight_h, padding=1)
             x_i = torch.sqrt(torch.pow(x_i_v, 2) + torch.pow(x_i_h, 2) + 1e-6)
             x_list.append(x_i)
-        x = torch.cat(x_list, dim = 1)
+        x = torch.cat(x_list, dim=1)
         return x
 
 
@@ -366,5 +346,5 @@ class Get_laplacian_gradient(nn.Module):
         for i in range(x.shape[1]):
             x_i = F.conv2d(x[:, i].unsqueeze(1), self.weight, padding=1)
             x_list.append(x_i)
-        x = torch.cat(x_list, dim = 1)
+        x = torch.cat(x_list, dim=1)
         return x
