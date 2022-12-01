@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torchvision
 from common import compute_num_params, Get_gradient
 from collections import OrderedDict
+from models import register
 
 ####################
 # Basic blocks
@@ -260,6 +261,7 @@ def upconv_blcok(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=
                         pad_type=pad_type, norm_type=norm_type, act_type=act_type)
     return sequential(upsample, conv)
 
+@register('spsr')
 class SPSRNet(nn.Module):
     def __init__(self, in_nc, out_nc, nf, nb, gc=32, upscale=4, norm_type=None,
                  act_type='leakyrelu', mode='CNA', upsample_mode='upconv'):
@@ -408,7 +410,8 @@ class SPSRNet(nn.Module):
         x_out = self.f_HR_conv1(x_out)
 
         #########
-        return x_out_branch, x_out, x_grad
+        # return x_out_branch, x_out, x_grad
+        return x_out
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
