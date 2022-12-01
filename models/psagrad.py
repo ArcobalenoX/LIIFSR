@@ -156,7 +156,7 @@ class Res2CAPA(nn.Module):
 #融合LR梯度图
 @register('psagrad')
 class psagrad(nn.Module):
-    def __init__(self, n_resblocks=20, n_feats=64, scale=2, n_colors=3 ):
+    def __init__(self, n_resblocks=20, n_feats=64, scale=2, n_colors=3):
         super().__init__()
 
         #define identity branch
@@ -164,8 +164,8 @@ class psagrad(nn.Module):
         m_identity.append(conv(n_colors, n_feats))
         m_identity.append(nn.ReLU())
         m_identity.append(conv(n_feats, n_feats))
+        # m_identity.append(Upsampler(conv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
-        self.up_identity = Upsampler(conv, scale, n_feats)
 
         # define residual branch
         m_residual=[]
@@ -173,40 +173,37 @@ class psagrad(nn.Module):
         for _ in range(n_resblocks):
             #m_residual.append(Res2CAPA(n_feats))
             m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
-            m_residual.append(SequentialPolarizedSelfAttention(n_feats))
+            # m_residual.append(SequentialPolarizedSelfAttention(n_feats))
+            m_residual.append(ParallelPolarizedSelfAttention(n_feats))
+        # m_residual.append(Upsampler(conv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
-        self.up_residual = Upsampler(conv, scale, n_feats)
 
-        self.get_grad = Get_laplacian_gradient()
-        self.up_grad = Upsampler(conv, scale, n_colors)
-        self.conv_grad = conv(n_colors, n_feats)
+        m_grad =[]
+        m_grad.append(Get_laplacian_gradient())
+        m_grad.append(conv(n_colors, n_feats))
+        # m_grad.append(Upsampler(conv, scale, n_feats))
+        self.grad = nn.Sequential(*m_grad)
 
         m_rebuild=[]
+        m_rebuild.append(conv(n_feats*3, n_feats))
+        m_rebuild.append(Upsampler(conv, scale, n_feats))
+        m_rebuild.append(nn.PReLU(n_feats))
         m_rebuild.append(conv(n_feats, n_colors))
-        #m_rebulid.append(nn.PReLU(n_colors))
-        #m_rebulid.append(conv(n_colors, n_colors))
+
         self.rebuild = nn.Sequential(*m_rebuild)
 
     def forward(self, x):
 
         inp = self.identity(x)
-        #print("inp  ", inp.shape)
-        inp = self.up_identity(inp)
-        #print("inp_up  ", inp.shape)
+        # inp = self.up_identity(inp)
 
         res = self.residual(x)
-        #print("res  ", res.shape)
-        res = self.up_residual(res)
-        #print("res_up  ", res.shape)
+        # res = self.up_residual(res)
 
-        grad = self.get_grad(x)
-        grad = self.up_grad(grad)
-        grad = self.conv_grad(grad)
+        grad = self.grad(x)
+        # grad = self.up_grad(grad)
 
-        #print("grad", grad.shape)
-        #print("grad_up", grad_up.shape)
-
-        y = inp + res + grad
+        y = torch.cat([inp, res, grad], dim=1)
         y = self.rebuild(y)
 
         return y

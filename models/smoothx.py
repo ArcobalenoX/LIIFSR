@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from models import register
-from common import compute_num_params, conv, Upsampler, PALayer, CALayer
+from common import compute_num_params, conv, Upsampler, PALayer, CALayer, SAM
 
 #小论文使用
 class RSPA(nn.Module):
@@ -52,6 +52,9 @@ class L0SmoothSR(nn.Module):
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
         self.fusion = conv(n_feats*3, 3, kernel_size)
+
+        # self.sam = SAM(n_colors, kernel_size, True)
+        # self.gradup = Upsampler(conv, scale, n_feats)
 
     def forward(self, x, l):
         inp = self.identity(x)
