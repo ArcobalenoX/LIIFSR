@@ -5,13 +5,14 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor, ToPILImage, Resize
+from torchvision.transforms import InterpolationMode
 
 from datasets import register
 from utils import to_pixel_samples
 
 
 def resize_fn(img, size):
-    return ToTensor()(Resize(size, Image.BICUBIC)(ToPILImage()(img)))
+    return ToTensor()(Resize(size, InterpolationMode.BICUBIC)(ToPILImage()(img)))
 
 
 @register('sr-implicit-paired')

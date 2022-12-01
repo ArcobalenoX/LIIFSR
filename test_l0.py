@@ -60,8 +60,8 @@ if __name__ == '__main__':
     psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
     print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
 
-    lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    print(f'result: lpips={lpips:.4f} ')
+    # lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    # print(f'result: lpips={lpips:.4f} ')
     et = time.time()
     print(f"cost time {et-st}")
 
