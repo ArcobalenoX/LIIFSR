@@ -14,7 +14,7 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss, ContrastLoss
+from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss
 import lpips
 
 
@@ -174,7 +174,7 @@ def train(train_loader, model, optimizer):
     criterion_char = CharbonnierLoss()
     criterion_edge = EdgeLoss()
     criterion_ssim = SSIMLoss()
-    criterion_con = ContrastLoss()
+
 
 
     train_dataset = config['train_dataset']

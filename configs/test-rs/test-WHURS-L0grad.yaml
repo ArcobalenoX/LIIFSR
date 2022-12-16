@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/WHU-RS19-test/GT
+      hr_dir: data/selfWHURS/WHURS-test/GT
       L0_dir: data/selfWHURS/smooth/smooth-whurs-test-grad
       cache: none
   wrapper:

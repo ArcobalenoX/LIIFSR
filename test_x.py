@@ -39,8 +39,6 @@ if __name__ == '__main__':
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-
-
     spec = config['test_dataset']
     dataset = datasets.make(spec['dataset'])
     spec['wrapper']['args']['scale'] = int(args.model.split('/')[-2][-1])

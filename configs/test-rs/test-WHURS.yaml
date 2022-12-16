@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/WHU-RS19-test/GT
+      root_path: data/selfWHURS/WHURS-test/GT
   wrapper:
     name: sr-paired
     args:

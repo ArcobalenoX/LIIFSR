@@ -14,7 +14,7 @@ sys.path.append("models")
 import datasets
 from models import models
 import utils
-from models.losses import AdversarialLoss, CharbonnierLoss, EdgeLoss, SSIMLoss
+from models.losses import CharbonnierLoss, EdgeLoss, SSIMLoss, AdversarialLoss, PerceptualLoss
 
 import lpips
 
