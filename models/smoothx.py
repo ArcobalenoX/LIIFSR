@@ -23,7 +23,7 @@ class RSPA(nn.Module):
         y = self.att(y)+x
         return y
 
-@register('rspal0')
+@register('RSPAL0')
 class RSPAL0(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
@@ -102,6 +102,27 @@ class L0Smoothsamx(nn.Module):
         return y
 
 
+class MKRB(nn.Module):
+    def __init__(self, n_feats):
+        super().__init__()
+        self.brb_3x3 = nn.Conv2d(n_feats, n_feats//4, kernel_size=3, padding=1)
+        self.brb_1x3 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(1, 3), padding=(0, 1))
+        self.brb_3x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=(3, 1), padding=(1, 0))
+        self.brb_1x1 = nn.Conv2d(n_feats, n_feats//4, kernel_size=1, padding=0)
+        self.act = nn.LeakyReLU(0.01, True)
+
+
+    def forward(self, x):
+        iden = x
+        x33 = self.brb_3x3(x)
+        x13 = self.brb_1x3(x)
+        x31 = self.brb_3x1(x)
+        x11 = self.brb_1x1(x)
+        xm = torch.cat([x33, x13, x31, x11], dim=1)
+        xm = self.act(xm)
+        y = xm+iden
+        return y
+
 #小论文参数量
 class MKRA(nn.Module):
     def __init__(self, n_feats):
@@ -162,16 +183,56 @@ class MKRAN(nn.Module):
         y = self.fusion(y)
         return y
 
+@register('L0mksam')
+class L0mksam(nn.Module):
+    def __init__(self, n_resblocks=20, n_feats=64, scale=2):
+        super().__init__()
+        kernel_size = 3
+        n_colors = 3
+        #define identity branch
+        m_identity = []
+        m_identity.append(conv(n_colors, n_feats))
+        m_identity.append(Upsampler(conv, scale, n_feats))
+        self.identity = nn.Sequential(*m_identity)
+
+        # define residual branch
+        m_residual = []
+        m_residual.append(conv(n_colors, n_feats))
+        for _ in range(n_resblocks):
+            m_residual.append(MKRB(n_feats))
+        m_residual.append(Upsampler(conv, scale, n_feats))
+        self.residual = nn.Sequential(*m_residual)
+
+        # define grad branch
+        m_smoothgrad = []
+        m_smoothgrad.append(Upsampler(conv, scale, n_colors))
+        self.smoothgrad = nn.Sequential(*m_smoothgrad)
+
+        self.fusion = conv(n_feats, 3, kernel_size)
+        self.sam = SAM(n_feats, kernel_size, True)
+
+    def forward(self, x, l):
+        inp = self.identity(x)
+        res = self.residual(x)
+        lu = self.smoothgrad(l)
+        deep = inp+res
+        y, img = self.sam(deep, lu)
+        y = self.fusion(y)
+        return y
+
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()
     l = torch.rand(1, 3, 48, 48).cuda()
-    model_name = L0SmoothSR #MKRAN
-    model = L0SmoothSR(20, 64, scale=4).cuda()
+    model_name = L0mksam
+    model = model_name(15, 48, scale=4).cuda()
     y = model(x, l)
-    # model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
-    # y = model(x)
-    print(model)
-    print("param_nums  ", compute_num_params(model))
+    print("param_nums  ", compute_num_params(model, False))
+    print("outpute  ", y.shape)
+
+    model = MKRAN(n_resblocks=20, n_feats=64, scale=4).cuda()
+    y = model(x, l)
+    #print(model)
+    print("param_nums  ", compute_num_params(model, False))
     print("outpute  ", y.shape)
 

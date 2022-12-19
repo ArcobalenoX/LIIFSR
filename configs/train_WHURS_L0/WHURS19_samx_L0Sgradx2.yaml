@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/WHU-RS19-train/GT
+      hr_dir: data/WHURS-train/GT
       L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad
       repeat: 1
       cache: in_memory
@@ -18,7 +18,7 @@ val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/WHU-RS19-test/GT
+      hr_dir: data/WHURS-test/GT
       L0_dir: data/selfWHURS/smooth/smooth-whurs-test-grad
       repeat: 1
       cache: in_memory
