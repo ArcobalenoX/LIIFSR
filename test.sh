@@ -1,0 +1,1 @@
+python test_x.py --config configs/test-rs/test-WHURS.yaml --model save/WHURS19_psagradx4/epoch-last.pth
