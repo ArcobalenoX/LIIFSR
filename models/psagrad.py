@@ -3,7 +3,10 @@ import torch
 import torch.nn as nn
 from models import register
 from common import conv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient, RCAB
+from smoothx import RSPA
+from attention.PolarizedSelfAttention import ParallelPolarizedSelfAttention, SequentialPolarizedSelfAttention
 
+'''
 
 class ParallelPolarizedSelfAttention(nn.Module):
     def __init__(self, channel=512):
@@ -45,8 +48,7 @@ class ParallelPolarizedSelfAttention(nn.Module):
         spatial_out = spatial_weight * x
         out = spatial_out + channel_out
         return out
-
-
+             
 class SequentialPolarizedSelfAttention(nn.Module):
     def __init__(self, channel=512):
         super().__init__()
@@ -86,7 +88,7 @@ class SequentialPolarizedSelfAttention(nn.Module):
         spatial_weight = self.sigmoid(spatial_wz.reshape(b, 1, h, w))  # bs,1,h,w
         spatial_out = spatial_weight * channel_out
         return spatial_out
-
+'''
 
 
 class Res2neck(nn.Module):
@@ -172,9 +174,10 @@ class psagrad(nn.Module):
         m_residual.append(conv(n_colors, n_feats))
         for _ in range(n_resblocks):
             #m_residual.append(Res2CAPA(n_feats))
-            m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
+            m_residual.append(RSPA(n_feats))
+            # m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
             # m_residual.append(SequentialPolarizedSelfAttention(n_feats))
-            m_residual.append(ParallelPolarizedSelfAttention(n_feats))
+            # m_residual.append(ParallelPolarizedSelfAttention(n_feats))
         # m_residual.append(Upsampler(conv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
 
