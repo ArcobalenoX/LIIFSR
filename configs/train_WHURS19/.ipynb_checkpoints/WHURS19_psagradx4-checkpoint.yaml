@@ -11,7 +11,7 @@ train_dataset:
       inp_size: 48
       scale: 4
       augment: true
-  batch_size: 192
+  batch_size: 64
 
 val_dataset:
   dataset:
@@ -25,7 +25,7 @@ val_dataset:
     args:
       inp_size: 48
       scale: 4
-  batch_size: 24
+  batch_size: 16
 
 
 data_norm:
@@ -51,5 +51,5 @@ multi_step_lr:
   milestones: [100, 200, 300, 400]
   gamma: 0.5
 
-
+# resume: save/WHURS19_psagradx4_RCAB_percloss/epoch-400.pth
 

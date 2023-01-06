@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     print(f'psnr: {psnr:.4f} ssim: {ssim:.4f}')
     print(f'lpips: {lpips:.4f}')
-    print(f"cost time {et-st}")
+    print(f"cost time {(et-st):.2f}")
 
 
 
