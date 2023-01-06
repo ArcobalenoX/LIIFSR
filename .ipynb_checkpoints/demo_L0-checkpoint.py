@@ -10,7 +10,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import csv
 import numpy as np
 from models import models
-from train_l0 import batched_predict
+from train_L0 import batched_predict
 from utils import calc_psnr, ssim
 
 #带L0smooth梯度图

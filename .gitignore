@@ -1,20 +1,20 @@
 __pycache__
 .idea
 .vscode
+*.ipynb_checkpoints*
 
 load
 data
-
 save
 result
-
-
+weights
 
 *.jpg
 *.png
 *.pth
 *.mp4
-
 *.xlsx
 *.csv
 *.txt
+
+

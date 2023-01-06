@@ -46,7 +46,7 @@ if __name__ == '__main__':
     loader = DataLoader(dataset, batch_size=spec['batch_size'], num_workers=0, pin_memory=True)
 
     sv_file = torch.load(args.model)
-    print(f'epoch——{sv_file["epoch"]}')
+    #print(f'epoch——{sv_file["epoch"]}')
 
     model_spec = torch.load(args.model)['model']
     #print(model_spec['sd'])
