@@ -2,7 +2,8 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient, RCAB
+from common import conv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient
+from rcan import RCAB
 from smoothx import RSPA
 from attention.PolarizedSelfAttention import ParallelPolarizedSelfAttention, SequentialPolarizedSelfAttention
 
@@ -173,7 +174,7 @@ class psagrad(nn.Module):
         m_residual=[]
         m_residual.append(conv(n_colors, n_feats))
         for _ in range(n_resblocks):
-            #m_residual.append(Res2CAPA(n_feats))
+            # m_residual.append(Res2CAPA(n_feats))
             m_residual.append(RSPA(n_feats))
             # m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
             # m_residual.append(SequentialPolarizedSelfAttention(n_feats))

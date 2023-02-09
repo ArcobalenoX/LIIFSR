@@ -30,6 +30,64 @@ def batched_predict(model, inp, coord, cell, bsize):
         pred = torch.cat(preds, dim=1)
     return pred
 
+def eval_psnr(loader, model, data_norm=None, eval_type=None, eval_bsize=None, verbose=False):
+    model.eval()
+
+    if data_norm is None:
+        data_norm = {
+            'inp': {'sub': [0], 'div': [1]},
+            'gt': {'sub': [0], 'div': [1]}
+        }
+    t = data_norm['inp']
+    inp_sub = torch.FloatTensor(t['sub']).view(1, -1, 1, 1).cuda()
+    inp_div = torch.FloatTensor(t['div']).view(1, -1, 1, 1).cuda()
+    t = data_norm['gt']
+    gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
+    gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
+
+    if eval_type is None:
+        metric_fn = utils.calc_psnr
+    elif eval_type.startswith('div2k'):
+        scale = int(eval_type.split('-')[1])
+        metric_fn = partial(utils.calc_psnr, dataset='div2k', scale=scale)
+    elif eval_type.startswith('benchmark'):
+        scale = int(eval_type.split('-')[1])
+        metric_fn = partial(utils.calc_psnr, dataset='benchmark', scale=scale)
+    else:
+        metric_fn = utils.calc_psnr
+
+    val_psnr = utils.Averager()
+    val_ssim = utils.Averager()
+
+    pbar = tqdm(loader, leave=False, desc='val')
+    for batch in pbar:
+        for k, v in batch.items():
+            batch[k] = v.cuda()
+
+        inp = (batch['inp'] - inp_sub) / inp_div
+        if eval_bsize is None:
+            with torch.no_grad():
+                pred = model(inp, batch['coord'], batch['cell'])
+        else:
+            pred = batched_predict(model, inp, batch['coord'], batch['cell'], eval_bsize)
+        pred = pred * gt_div + gt_sub
+        pred.clamp_(0, 1)
+
+        #if eval_type is not None: # reshape for shaving-eval
+        ih, iw = batch['inp'].shape[-2:]
+        s = math.sqrt(batch['coord'].shape[1] / (ih * iw))
+        shape = [batch['inp'].shape[0], round(ih * s), round(iw * s), 3]
+        pred = pred.view(*shape).permute(0, 3, 1, 2).contiguous()
+        batch['gt'] = batch['gt'].view(*shape).permute(0, 3, 1, 2).contiguous()
+
+        psnr = metric_fn(pred, batch['gt'])
+        val_psnr.add(psnr.item(), inp.shape[0])
+
+        if verbose:
+            pbar.set_description(f'PSNR {val_psnr.item():.4f}')
+
+    return val_psnr.item()
+
 
 def eval_psnr_ssim(loader, model, data_norm=None, eval_type=None, eval_bsize=None, verbose=False):
     model.eval()

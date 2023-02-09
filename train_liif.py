@@ -34,7 +34,7 @@ from torchvision.utils import save_image
 import datasets
 import models
 import utils
-from test import eval_psnr
+from test_liif import eval_psnr
 
 from models import losses
 
