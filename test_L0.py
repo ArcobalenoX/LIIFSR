@@ -9,13 +9,16 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
 import sys
 sys.path.append("models")
+
 import datasets
 import models
 import utils
 from train_L0 import eval_psnr_ssim,eval_lpips
-from torch.nn.utils import prune
+
 
 #测试加入了L0smooth的网络
 torch.manual_seed(0)
@@ -25,7 +28,7 @@ np.random.seed(0)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config')
+    parser.add_argument('--config',default="configs/test-rs/test-WHURS-L0grad.yaml")
     parser.add_argument('--model')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--save_sr', default=False)
@@ -53,16 +56,16 @@ if __name__ == '__main__':
     #print(model_spec)
     model = models.make(model_spec, load_sd=True).cuda()
     #print(model)
-
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
+
     st = time.time()
     psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
-
-    # lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    # print(f'result: lpips={lpips:.4f} ')
+    lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
     et = time.time()
+
+    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
+    print(f'result: lpips={lpips:.4f} ')
     print(f"cost time {et-st}")
 
 

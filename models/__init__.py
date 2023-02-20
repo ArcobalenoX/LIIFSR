@@ -4,6 +4,6 @@ from . import edsr, rdn, mlp, liif, misc, siren
 #经典对比方法
 from . import arch_util, rcan, srresnet, carn, pan, lgcnet, drsen, vdsr, swinir, spsr, vapsr
 #自设计
-from . import dasr, smoothx, res2sr, psagrad
+from . import dasr, smoothx, res2sr, psagrad, dsfnet
 
 

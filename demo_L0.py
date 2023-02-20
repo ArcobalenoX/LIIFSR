@@ -26,20 +26,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
-
-    #st = time.time()
-    #et = time.time()
-    #print(f"{os.path.basename(args.lr)} spend time {(et-st):.3f}s")
-
-    scale = 2
+    scale = 4
     lr_dir = args.lrdir
     hr_dir = args.hrdir
     ls_dir = args.lsdir
-    sr_dir = os.path.join('testimg', args.model.split('/')[-2])
+    sr_dir = os.path.join('AID', args.model.split(os.sep)[-2])
+    model_name = args.model.split(os.sep)[-2]
     #sr_dir = r"testimg/WHURS19_samxhighx2_low"
     if not os.path.exists(sr_dir):
         os.makedirs(sr_dir)
-    result_csv = os.path.join(sr_dir, args.model.split('/')[-2]+".csv")
+    result_csv = os.path.join(sr_dir, model_name+".csv")
 
     psnr_cnt = []
     ssim_cnt = []
@@ -74,7 +70,10 @@ if __name__ == '__main__':
             transforms.ToPILImage()(pred[0].cpu()).save(os.path.join(sr_dir, name).replace('jpg', 'png'))
             print(name, psnr_v, ssim_v)
             writer.writerow([name, psnr_v, ssim_v])
-        print(np.mean(psnr_cnt))
-        print(np.mean(ssim_cnt))
+
+        psnr = np.mean(psnr_cnt)
+        ssim = np.mean(ssim_cnt)
+        print(f'psnr: {psnr:.4f} ssim: {ssim:.4f}')
+
 
 

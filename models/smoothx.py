@@ -62,7 +62,7 @@ class RSPAL0(nn.Module):
 
 
 @register('L0Smoothsamx')
-class L0Smoothsamx(nn.Module):
+class L0Smooth(nn.Module):
     def __init__(self, n_resblocks=20, n_feats=64, scale=2):
         super().__init__()
         kernel_size = 3

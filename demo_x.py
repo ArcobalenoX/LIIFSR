@@ -20,8 +20,8 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx4/epoch-last.pth')
-    parser.add_argument('--lrdir', default=r'data/WHU-RS19-test/LR/x4')
-    parser.add_argument('--hrdir', default=r'data/WHU-RS19-test/GT')
+    parser.add_argument('--lrdir', default=r'data/selfWHURS/WHURS-test/LR/x4')
+    parser.add_argument('--hrdir', default=r'data/selfWHURS/WHURS-test/GT')
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     scale = int(model_name[-1])
     lr_dir = args.lrdir
     hr_dir = args.hrdir
-    sr_dir = os.path.join('WHURS', model_name)
+    sr_dir = os.path.join('AID', model_name)
     if not os.path.exists(sr_dir):
         os.makedirs(sr_dir)
     result_csv = os.path.join(sr_dir, model_name+".csv")
@@ -54,18 +54,18 @@ if __name__ == '__main__':
             pred = batched_predict(model, lr)
             pred = (pred * 0.5 + 0.5).clamp(0, 1)
 
-
             psnr_v = calc_psnr(pred, hr).item()
             ssim_v = ssim(pred, hr).item()
             psnr_cnt.append(psnr_v)
             ssim_cnt.append(ssim_v)
 
             transforms.ToPILImage()(pred[0].cpu()).save(os.path.join(sr_dir, name).replace('jpg', 'png'))
-            #print(name, psnr_v, ssim_v)
+            print(name, psnr_v, ssim_v)
             writer.writerow([name, psnr_v, ssim_v])
-        print(np.mean(psnr_cnt))
-        print(np.mean(ssim_cnt))
-
         et = time.time()
+
+        psnr = np.mean(psnr_cnt)
+        ssim = np.mean(ssim_cnt)
+        print(f'psnr: {psnr:.4f} ssim: {ssim:.4f}')
         print('time:', et-st)
 

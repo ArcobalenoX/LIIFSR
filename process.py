@@ -46,19 +46,19 @@ def cv2_crop(in_dir, out_dir, x=0, y=0, w=100):
 
 
 
-def scale_crop(dir, x=80, y=100, width=200, scale=3):
-    # the direction of the result
-    # the(x, y), and the width
-
+def scale_crop(dir, result_dir, x=80, y=100, width=200, scale=3):
     # capture an image
     pyFile = glob.glob(os.path.join(dir, "*.png"))
     pyFile += glob.glob(os.path.join(dir, "*.jpg"))
-    pyFile += glob.glob(os.path.join(dir, "*.bmp"))
-    result_path = os.path.join(dir, "crop")
+    # pyFile += glob.glob(os.path.join(dir, "*.bmp"))
 
-    # if the in result
-    if not os.path.exists(result_path):
-        os.mkdir(result_path)
+    sign_dir = os.path.join(result_dir, "_sign")
+    sub_dir = os.path.join(result_dir, "_sub")
+    if not os.path.exists(sign_dir):
+        # os.makedirs(result_dir)
+        os.makedirs(sign_dir)
+    if not os.path.exists(sub_dir):
+        os.makedirs(sub_dir)
 
     # Traverse the picture
     for img_path in pyFile:
@@ -71,20 +71,23 @@ def scale_crop(dir, x=80, y=100, width=200, scale=3):
         # Box out of the selection
         draw.rectangle((x, y, x + width, (y + width) // aspect_ratio), outline='red', width=3)  # width是线条的宽度
 
-        # im_ = im_.resize(im.size) # Call the resize function to enlarge the submap to the original image size
-        width1 = int(im_.size[0] * scale)
-        height1 = int(im_.size[1] * scale)
-        im_ = im_.resize((width1, height1), Image.ANTIALIAS)
+        if scale != 1:
+            # im_ = im_.resize(im.size) # Call the resize function to enlarge the submap to the original image size
+            width1 = int(im_.size[0] * scale)
+            height1 = int(im_.size[1] * scale)
+            im_ = im_.resize((width1, height1), Image.BICUBIC)
 
         # Get the file name
+        # img_name = os.path.basename(img_path)
         _, img_name = os.path.split(img_path)
         img_name, _ = os.path.splitext(img_name)
 
         # Save submap and original image with marquee
-        im_.save(os.path.join(result_path, img_name + '_sub_image.png'))
-        im.save(os.path.join(result_path, img_name + '_ori_image.png'))
+        im_.save(os.path.join(sub_dir, os.path.basename(dir) + img_name + '_sub.png'))
+        im.save(os.path.join(sign_dir, os.path.basename(dir) + img_name + '_sign.png'))
 
 if __name__ == '__main__':
-    scale_crop("testimg/river42-x4",x=350, y=350, width=200, scale=3)
+    # print(os.path.basename('result/crop/WHURS19_edsrblx2'))
+    scale_crop("result/WHURS19_lgcnetx4", "result/crop/WHURS19_lgcnetx4", x=300, y=300, width=200, scale=1)
 
 
