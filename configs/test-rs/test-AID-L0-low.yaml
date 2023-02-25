@@ -8,7 +8,7 @@ test_dataset:
   wrapper:
     name: LO-wrappers
     args:
-      scale: 2
+      scale: 4
   batch_size: 1
 
 data_norm:

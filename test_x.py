@@ -17,7 +17,7 @@ sys.path.append("models")
 import datasets
 import models
 import utils
-from train_x import eval_psnr_ssim, eval_lpips
+from train_x import eval_metric
 
 
 torch.manual_seed(0)
@@ -57,12 +57,10 @@ if __name__ == '__main__':
     parments = utils.compute_num_params(model, True)
     print("params:", parments)
     st = time.time()
-    psnr, ssim = eval_psnr_ssim(loader, model, data_norm=config.get('data_norm'), verbose=True)
-    # lpips = eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
+    psnr, ssim, lpips = eval_metric(loader, model, eval_psnr=True, eval_ssim=True, eval_lpips=True, data_norm=config.get('data_norm'), verbose=True)
     et = time.time()
 
-    print(f'psnr: {psnr:.4f} ssim: {ssim:.4f}')
-    # print(f'lpips: {lpips:.4f}')
+    print(f'psnr: {psnr:.4f} ssim: {ssim:.4f} lpips: {lpips:.4f}')
     print(f"cost time {(et-st):.2f}")
 
 

@@ -270,7 +270,7 @@ def upconv_blcok(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=
 @register('dsfnet')
 class DSFNET(nn.Module):
     def __init__(self, in_nc, out_nc, nf=64, nb=23, np=5, gc=32, upscale=4, norm_type=None,
-                 act_type='leakyrelu', mode='CNA', upsample_mode='pixelshuffle'):
+                 act_type='leakyrelu', mode='CNA', upsample_mode='pixelshuffle', pattern='l'):
         super().__init__()
 
         n_upscale = int(math.log(upscale, 2))
@@ -279,7 +279,7 @@ class DSFNET(nn.Module):
         if upscale == 3:
             n_upscale = 1
 
-        pattern = 's'
+
         if pattern == 's':
             rb_blocks = [VAB(nf, nf) for _ in range(nb)]
             self.b_block_1 = VAB(nf * 2, nf)
@@ -299,14 +299,11 @@ class DSFNET(nn.Module):
         elif pattern == 'l':
             rb_blocks = [RRDB(nf, kernel_size=3, gc=gc, stride=1, bias=True, pad_type='zero',
                           norm_type=norm_type, act_type=act_type, mode='CNA') for _ in range(nb)]
-            self.b_block_1 = RRDB(nf * 2, kernel_size=3, gc=gc, stride=1, bias=True, pad_type='zero',
-                                  norm_type=norm_type, act_type=act_type, mode='CNA')
-            self.b_block_2 = RRDB(nf * 2, kernel_size=3, gc=gc, stride=1, bias=True, pad_type='zero',
-                                  norm_type=norm_type, act_type=act_type, mode='CNA')
-            self.b_block_3 = RRDB(nf * 2, kernel_size=3, gc=gc, stride=1, bias=True, pad_type='zero',
-                                  norm_type=norm_type, act_type=act_type, mode='CNA')
-            self.b_block_4 = RRDB(nf * 2, kernel_size=3, gc=gc, stride=1, bias=True, pad_type='zero',
-                                  norm_type=norm_type, act_type=act_type, mode='CNA')
+            self.b_block_1 = VAB(nf * 2, nf)
+            self.b_block_2 = VAB(nf * 2, nf)
+            self.b_block_3 = VAB(nf * 2, nf)
+            self.b_block_4 = VAB(nf * 2, nf)
+
 
         fea_conv = conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
 
@@ -318,6 +315,7 @@ class DSFNET(nn.Module):
             upsample_block = pixelshuffle_block
         else:
             raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+
         if upscale == 3:
             upsampler = upsample_block(nf, nf, 3, act_type=act_type)
         else:
@@ -336,34 +334,23 @@ class DSFNET(nn.Module):
         self.b_concat_1 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
         self.b_pa_1 = PALayer(nf * 2)
 
-
         self.b_concat_2 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
         self.b_pa_2 = PALayer(nf * 2)
 
-
         self.b_concat_3 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
         self.b_pa_3 = PALayer(nf * 2)
-
 
         self.b_concat_4 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
         self.b_pa_4 = PALayer(nf * 2)
 
         self.b_LR_conv = conv_block(nf, nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
 
-        if upsample_mode == 'upconv':
-            upsample_block = upconv_blcok
-        elif upsample_mode == 'pixelshuffle':
-            upsample_block = pixelshuffle_block
-        else:
-            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
         if upscale == 3:
             b_upsampler = upsample_block(nf, nf, 3, act_type=act_type)
         else:
             b_upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
-
         b_HR_conv0 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
         b_HR_conv1 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=None)
-
         self.b_module = sequential(*b_upsampler, b_HR_conv0, b_HR_conv1)
 
         self.conv_w = conv_block(nf, out_nc, kernel_size=1, norm_type=None, act_type=None)
@@ -442,6 +429,327 @@ class DSFNET(nn.Module):
 
         return x_out
 
+
+@register('sppsa')
+class SPPSA(nn.Module):
+    def __init__(self, in_nc, out_nc, nf, nb, gc=32, upscale=4, norm_type=None,
+                 act_type='leakyrelu', mode='CNA', upsample_mode='pixelshuffle'):
+        super().__init__()
+
+        n_upscale = int(math.log(upscale, 2))
+
+        if upscale == 3:
+            n_upscale = 1
+
+        fea_conv = conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
+        rb_blocks = [RRDB(nf, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                          norm_type=norm_type, act_type=act_type, mode='CNA') for _ in range(nb)]
+
+        LR_conv = conv_block(nf, nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
+
+        if upsample_mode == 'upconv':
+            upsample_block = upconv_blcok
+        elif upsample_mode == 'pixelshuffle':
+            upsample_block = pixelshuffle_block
+        else:
+            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+        if upscale == 3:
+            upsampler = upsample_block(nf, nf, 3, act_type=act_type)
+        else:
+            upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
+
+        self.HR_conv0_new = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        self.HR_conv1_new = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.model = sequential(fea_conv, ShortcutBlock(sequential(*rb_blocks, LR_conv)),
+                                *upsampler, self.HR_conv0_new)
+
+        self.get_g_nopadding = Get_gradient()
+
+        self.b_fea_conv = conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.b_concat_1 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pas_1 = ParallelPolarizedSelfAttention(nf * 2)
+        self.b_block_1 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_2 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pas_2 = ParallelPolarizedSelfAttention(nf * 2)
+        self.b_block_2 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_3 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pas_3 = ParallelPolarizedSelfAttention(nf * 2)
+        self.b_block_3 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_4 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pas_4 = ParallelPolarizedSelfAttention(nf * 2)
+        self.b_block_4 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_LR_conv = conv_block(nf, nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
+
+        if upsample_mode == 'upconv':
+            upsample_block = upconv_blcok
+        elif upsample_mode == 'pixelshuffle':
+            upsample_block = pixelshuffle_block
+        else:
+            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+        if upscale == 3:
+            b_upsampler = upsample_block(nf, nf, 3, act_type=act_type)
+        else:
+            b_upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
+
+        b_HR_conv0 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        b_HR_conv1 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.b_module = sequential(*b_upsampler, b_HR_conv0, b_HR_conv1)
+
+        self.conv_w = conv_block(nf, out_nc, kernel_size=1, norm_type=None, act_type=None)
+
+        self.f_concat = conv_block(nf * 2, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.f_block = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                            norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.f_HR_conv0 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        self.f_HR_conv1 = conv_block(nf, out_nc, kernel_size=3, norm_type=None, act_type=None)
+
+    def forward(self, x):
+
+        x_grad = self.get_g_nopadding(x)
+        x = self.model[0](x)
+
+        x, block_list = self.model[1](x)
+
+        x_ori = x
+        for i in range(5):
+            x = block_list[i](x)
+        x_fea1 = x
+
+        for i in range(5):
+            x = block_list[i + 5](x)
+        x_fea2 = x
+
+        for i in range(5):
+            x = block_list[i + 10](x)
+        x_fea3 = x
+
+        for i in range(5):
+            x = block_list[i + 15](x)
+        x_fea4 = x
+
+        x = block_list[20:](x)
+        # short cut
+        x = x_ori + x
+        x = self.model[2:](x)
+        x = self.HR_conv1_new(x)
+
+        x_b_fea = self.b_fea_conv(x_grad)
+        x_cat_1 = torch.cat([x_b_fea, x_fea1], dim=1)
+
+        x_cat_1 = self.b_block_1(x_cat_1)
+        x_cat_1 = self.b_pas_1(x_cat_1)
+        x_cat_1 = self.b_concat_1(x_cat_1)
+
+        x_cat_2 = torch.cat([x_cat_1, x_fea2], dim=1)
+
+        x_cat_2 = self.b_block_2(x_cat_2)
+        x_cat_2 = self.b_pas_2(x_cat_2)
+        x_cat_2 = self.b_concat_2(x_cat_2)
+
+        x_cat_3 = torch.cat([x_cat_2, x_fea3], dim=1)
+
+        x_cat_3 = self.b_block_3(x_cat_3)
+        x_cat_3 = self.b_pas_3(x_cat_3)
+        x_cat_3 = self.b_concat_3(x_cat_3)
+
+        x_cat_4 = torch.cat([x_cat_3, x_fea4], dim=1)
+
+        x_cat_4 = self.b_block_4(x_cat_4)
+        x_cat_4 = self.b_pas_4(x_cat_4)
+        x_cat_4 = self.b_concat_4(x_cat_4)
+
+        x_cat_4 = self.b_LR_conv(x_cat_4)
+
+        # short cut
+        x_cat_4 = x_cat_4 + x_b_fea
+        x_branch = self.b_module(x_cat_4)
+
+        x_out_branch = self.conv_w(x_branch)
+        ########
+        x_branch_d = x_branch
+        x_f_cat = torch.cat([x_branch_d, x], dim=1)
+        x_f_cat = self.f_block(x_f_cat)
+        x_out = self.f_concat(x_f_cat)
+        x_out = self.f_HR_conv0(x_out)
+        x_out = self.f_HR_conv1(x_out)
+
+        #########
+        # return x_out_branch, x_out, x_grad
+        return x_out
+
+
+@register('sppa')
+class SPPA(nn.Module):
+    def __init__(self, in_nc, out_nc, nf, nb, gc=32, upscale=4, norm_type=None,
+                 act_type='leakyrelu', mode='CNA', upsample_mode='pixelshuffle'):
+        super().__init__()
+
+        n_upscale = int(math.log(upscale, 2))
+
+        if upscale == 3:
+            n_upscale = 1
+
+        fea_conv = conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
+        rb_blocks = [RRDB(nf, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                          norm_type=norm_type, act_type=act_type, mode='CNA') for _ in range(nb)]
+
+        LR_conv = conv_block(nf, nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
+
+        if upsample_mode == 'upconv':
+            upsample_block = upconv_blcok
+        elif upsample_mode == 'pixelshuffle':
+            upsample_block = pixelshuffle_block
+        else:
+            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+        if upscale == 3:
+            upsampler = upsample_block(nf, nf, 3, act_type=act_type)
+        else:
+            upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
+
+        self.HR_conv0_new = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        self.HR_conv1_new = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.model = sequential(fea_conv, ShortcutBlock(sequential(*rb_blocks, LR_conv)),
+                                *upsampler, self.HR_conv0_new)
+
+        self.get_g_nopadding = Get_gradient()
+
+        self.b_fea_conv = conv_block(in_nc, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.b_concat_1 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pa_1 = PALayer(nf * 2)
+        self.b_block_1 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_2 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pa_2 = PALayer(nf * 2)
+        self.b_block_2 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_3 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pa_3 = PALayer(nf * 2)
+        self.b_block_3 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_concat_4 = conv_block(2 * nf, nf, kernel_size=3, norm_type=None, act_type=None)
+        self.b_pa_4 = PALayer(nf * 2)
+        self.b_block_4 = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                              norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.b_LR_conv = conv_block(nf, nf, kernel_size=3, norm_type=norm_type, act_type=None, mode=mode)
+
+        if upsample_mode == 'upconv':
+            upsample_block = upconv_blcok
+        elif upsample_mode == 'pixelshuffle':
+            upsample_block = pixelshuffle_block
+        else:
+            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+        if upscale == 3:
+            b_upsampler = upsample_block(nf, nf, 3, act_type=act_type)
+        else:
+            b_upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
+
+        b_HR_conv0 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        b_HR_conv1 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.b_module = sequential(*b_upsampler, b_HR_conv0, b_HR_conv1)
+
+        self.conv_w = conv_block(nf, out_nc, kernel_size=1, norm_type=None, act_type=None)
+
+        self.f_concat = conv_block(nf * 2, nf, kernel_size=3, norm_type=None, act_type=None)
+
+        self.f_block = RRDB(nf * 2, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero',
+                            norm_type=norm_type, act_type=act_type, mode='CNA')
+
+        self.f_HR_conv0 = conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
+        self.f_HR_conv1 = conv_block(nf, out_nc, kernel_size=3, norm_type=None, act_type=None)
+
+    def forward(self, x):
+
+        x_grad = self.get_g_nopadding(x)
+        x = self.model[0](x)
+
+        x, block_list = self.model[1](x)
+
+        x_ori = x
+        for i in range(5):
+            x = block_list[i](x)
+        x_fea1 = x
+
+        for i in range(5):
+            x = block_list[i + 5](x)
+        x_fea2 = x
+
+        for i in range(5):
+            x = block_list[i + 10](x)
+        x_fea3 = x
+
+        for i in range(5):
+            x = block_list[i + 15](x)
+        x_fea4 = x
+
+        x = block_list[20:](x)
+        # short cut
+        x = x_ori + x
+        x = self.model[2:](x)
+        x = self.HR_conv1_new(x)
+
+        x_b_fea = self.b_fea_conv(x_grad)
+        x_cat_1 = torch.cat([x_b_fea, x_fea1], dim=1)
+
+        x_cat_1 = self.b_block_1(x_cat_1)
+        x_cat_1 = self.b_pa_1(x_cat_1)
+        x_cat_1 = self.b_concat_1(x_cat_1)
+
+        x_cat_2 = torch.cat([x_cat_1, x_fea2], dim=1)
+
+        x_cat_2 = self.b_block_2(x_cat_2)
+        x_cat_2 = self.b_pa_2(x_cat_2)
+        x_cat_2 = self.b_concat_2(x_cat_2)
+
+        x_cat_3 = torch.cat([x_cat_2, x_fea3], dim=1)
+
+        x_cat_3 = self.b_block_3(x_cat_3)
+        x_cat_3 = self.b_pa_3(x_cat_3)
+        x_cat_3 = self.b_concat_3(x_cat_3)
+
+        x_cat_4 = torch.cat([x_cat_3, x_fea4], dim=1)
+
+        x_cat_4 = self.b_block_4(x_cat_4)
+        x_cat_4 = self.b_pa_4(x_cat_4)
+        x_cat_4 = self.b_concat_4(x_cat_4)
+
+        x_cat_4 = self.b_LR_conv(x_cat_4)
+
+        # short cut
+        x_cat_4 = x_cat_4 + x_b_fea
+        x_branch = self.b_module(x_cat_4)
+
+        x_out_branch = self.conv_w(x_branch)
+        ########
+        x_branch_d = x_branch
+        x_f_cat = torch.cat([x_branch_d, x], dim=1)
+        x_f_cat = self.f_block(x_f_cat)
+        x_out = self.f_concat(x_f_cat)
+        x_out = self.f_HR_conv0(x_out)
+        x_out = self.f_HR_conv1(x_out)
+
+        #########
+        # return x_out_branch, x_out, x_grad
+        return x_out
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48).cuda()

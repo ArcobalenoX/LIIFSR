@@ -64,8 +64,7 @@ if __name__ == '__main__':
     lpips= eval_lpips(loader, model, data_norm=config.get('data_norm'), verbose=True)
     et = time.time()
 
-    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f}')
-    print(f'result: lpips={lpips:.4f} ')
+    print(f'result: psnr={psnr:.4f} ssim={ssim:.4f} lpips={lpips:.4f}')
     print(f"cost time {et-st}")
 
 

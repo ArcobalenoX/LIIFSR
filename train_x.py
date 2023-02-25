@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiStepLR,CosineAnnealingLR
 from torchvision.utils import save_image
+from torchvision import transforms
 from tqdm import tqdm
 import sys
 sys.path.append("models")
@@ -24,8 +25,7 @@ def batched_predict(model, inp):
         pred = model(inp)
     return pred
 
-
-def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
+def eval_metric(loader, model, eval_psnr=True, eval_ssim=True, eval_lpips=True, data_norm=None, verbose=False):
     model.eval()
     if data_norm is None:
         data_norm = {
@@ -40,47 +40,13 @@ def eval_psnr_ssim(loader, model, data_norm=None, verbose=False):
     gt_sub = torch.FloatTensor(t['sub']).cuda()
     gt_div = torch.FloatTensor(t['div']).cuda()
 
+
     val_psnr = utils.Averager()
     val_ssim = utils.Averager()
 
-    pbar = tqdm(loader, leave=False, desc='val')
-    for batch in pbar:
-        for k, v in batch.items():
-            batch[k] = v.cuda()
-        inp = (batch['inp'] - inp_sub) / inp_div
-
-        pred = batched_predict(model,inp)
-        pred = (pred * gt_div + gt_sub).clamp_(0, 1)
-
-        psnr = utils.calc_psnr(pred, batch['gt'])
-        val_psnr.add(psnr.item(), inp.shape[0])
-
-        ssim = utils.ssim(pred, batch['gt'])
-        val_ssim.add(ssim.item(), inp.shape[0])
-
-        if verbose:
-            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f}')
-
-    return val_psnr.item(), val_ssim.item()
-
-def eval_lpips(loader, model, data_norm=None, verbose=False):
-    model.eval()
-    if data_norm is None:
-        data_norm = {
-            'inp': {'sub': [0], 'div': [1]},
-            'gt': {'sub': [0], 'div': [1]}
-        }
-
-    t = data_norm['inp']
-    inp_sub = torch.FloatTensor(t['sub']).cuda()
-    inp_div = torch.FloatTensor(t['div']).cuda()
-    t = data_norm['gt']
-    gt_sub = torch.FloatTensor(t['sub']).cuda()
-    gt_div = torch.FloatTensor(t['div']).cuda()
-
     # Linearly calibrated models (LPIPS)
-    lpips_fn = lpips.LPIPS(net='alex').cuda() # Can also set net = 'squeeze' or 'vgg'
-
+    if eval_lpips:
+        lpips_fn = lpips.LPIPS(net='alex').cuda() # Can also set net = 'squeeze' or 'vgg'
     val_lpips = utils.Averager()
 
     pbar = tqdm(loader, leave=False, desc='val')
@@ -89,17 +55,27 @@ def eval_lpips(loader, model, data_norm=None, verbose=False):
             batch[k] = v.cuda()
         inp = (batch['inp'] - inp_sub) / inp_div
 
-        pred = batched_predict(model,inp)
+        # inp = transforms.GaussianBlur(5, 0.5)(inp)#加噪
+
+        pred = batched_predict(model, inp)
         pred = (pred * gt_div + gt_sub).clamp_(0, 1)
 
-        lpipsv = lpips_fn.forward(pred, batch['gt'])
-        val_lpips.add(lpipsv.item(), inp.shape[0])
+        if eval_psnr:
+            psnrv = utils.calc_psnr(pred, batch['gt'])
+            val_psnr.add(psnrv.item(), inp.shape[0])
+
+        if eval_ssim:
+            ssimv = utils.ssim(pred, batch['gt'])
+            val_ssim.add(ssimv.item(), inp.shape[0])
+
+        if eval_lpips:
+            lpipsv = lpips_fn.forward(pred, batch['gt'])
+            val_lpips.add(lpipsv.item(), inp.shape[0])
 
         if verbose:
-            pbar.set_description(f'lpips {val_lpips.item():.4f}')
+            pbar.set_description(f'PSNR {val_psnr.item():.4f} SSIM {val_ssim.item():.4f} lpips {val_lpips.item():.4f}')
 
-    return val_lpips.item()
-
+    return val_psnr.item(), val_ssim.item(), val_lpips.item()
 
 
 def make_data_loader(spec, tag=''):
@@ -196,11 +172,11 @@ def train(train_loader, model, optimizer):
         loss_char = criterion_char(pred, gt)
         loss_edge = criterion_edge(pred, gt)
         loss_ssim = criterion_ssim(pred, gt)
-        pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
-        loss_dual = criterion_char(pred_dual, inp)
-        loss_perc = criterion_perceptual(pred, gt)
-        loss = loss_char + loss_edge  + loss_perc*0.1  + loss_dual + (1-loss_ssim)*0.1
-
+        # pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
+        # loss_dual = criterion_char(pred_dual, inp)
+        # loss_perc = criterion_perceptual(pred, gt)
+        # loss = loss_char + loss_edge  + loss_perc*0.1  + loss_dual + (1-loss_ssim)*0.1
+        loss = loss_char + loss_edge  + (1-loss_ssim)*0.1
         #loss = loss_L1(pred, gt) #单独L1损失
 
         print_loss = 0
@@ -244,7 +220,8 @@ def main(config_, save_path):
     epoch_max = config['epoch_max']
     epoch_val = config.get('epoch_val')
     epoch_save = config.get('epoch_save')
-    max_val_v = -1e18
+    max_val_psnr = -1e18
+    max_val_ssim = -1e18
 
     timer = utils.Timer()
 
@@ -288,14 +265,17 @@ def main(config_, save_path):
                 model_ = model.module
             else:
                 model_ = model
-            val_psnr, val_ssim = eval_psnr_ssim(val_loader, model_, data_norm=config['data_norm'])
-
+            val_psnr, val_ssim, val_lpips = eval_metric(val_loader, model_, eval_psnr=True, eval_ssim=True, eval_lpips=False,
+                                            data_norm=config['data_norm'], verbose=False)
             log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
             writer.add_scalars('psnr', {'val': val_psnr}, epoch)
             writer.add_scalars('ssim', {'val': val_ssim}, epoch)
-            if val_psnr > max_val_v:
-                max_val_v = val_psnr
-                torch.save(sv_file, os.path.join(save_path, 'epoch-best.pth'))
+            if val_psnr > max_val_psnr:
+                max_val_psnr = val_psnr
+                torch.save(sv_file, os.path.join(save_path, 'epoch-best-psnr.pth'))
+            if val_ssim > max_val_ssim:
+                max_val_ssim = val_ssim
+                torch.save(sv_file, os.path.join(save_path, 'epoch-best-ssim.pth'))
 
         t = timer.t()
         prog = (epoch - epoch_start + 1) / (epoch_max - epoch_start + 1)
