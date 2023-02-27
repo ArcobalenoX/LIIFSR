@@ -12,7 +12,7 @@ from torchvision import transforms
 from datasets import register
 
 def is_image_file(filename):
-    return any(filename.endswith(extension) for extension in ['jpeg', 'JPEG', 'jpg', 'png', 'JPG', 'PNG', 'gif'])
+    return any(filename.endswith(extension) for extension in ['jpeg', 'JPEG', 'jpg', 'JPG', 'png', 'PNG', 'gif'])
 
 @register('image-folder')
 class ImageFolder(Dataset):

@@ -144,6 +144,7 @@ def train(train_loader, model, optimizer):
     inp_size = train_dataset['wrapper']['args']['inp_size']
     scale = train_dataset['wrapper']['args']['scale']
     bs = train_dataset['batch_size']
+
     data_norm = config['data_norm']
     t = data_norm['inp']
     inp_sub = torch.FloatTensor(t['sub']).cuda()

@@ -2,20 +2,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models import register
-from common import conv, compute_num_params
+from common import normalconv, compute_num_params
 
 @register('lgcnet')
 class LGCNET(nn.Module):
     def __init__(self, scale=2):
         super().__init__()
         self.scale = scale
-        self.conv1 = conv(3, 32)
-        self.conv2 = conv(32, 32)
-        self.conv3 = conv(32, 32)
-        self.conv4 = conv(32, 32)
-        self.conv5 = conv(32, 32)
-        self.conv6 = conv(96, 64, 5)
-        self.conv7 = conv(64, 3)
+        self.conv1 = normalconv(3, 32)
+        self.conv2 = normalconv(32, 32)
+        self.conv3 = normalconv(32, 32)
+        self.conv4 = normalconv(32, 32)
+        self.conv5 = normalconv(32, 32)
+        self.conv6 = normalconv(96, 64, 5)
+        self.conv7 = normalconv(64, 3)
 
     def forward(self, x):
 

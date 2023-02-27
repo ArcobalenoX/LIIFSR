@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-from common import compute_num_params, Get_gradient, PALayer, CALayer, conv, Upsampler
+from common import compute_num_params, Get_gradient, PALayer, CALayer, normalconv, Upsampler
 from collections import OrderedDict
 from models import register
 from attention.PolarizedSelfAttention import ParallelPolarizedSelfAttention, SequentialPolarizedSelfAttention

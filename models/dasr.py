@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, PALayer, Upsampler, compute_num_params
+from common import normalconv, PALayer, Upsampler, compute_num_params
 from attention.CBAM import SpatialAttention
 
 class RDAB(nn.Module):
@@ -36,19 +36,19 @@ class DASR(nn.Module):
 
         #define identity branch 全局残差分支
         m_identity = []
-        m_identity.append(conv(n_colors, n_feats))
-        m_identity.append(Upsampler(conv, scale, n_feats))
+        m_identity.append(normalconv(n_colors, n_feats))
+        m_identity.append(Upsampler(normalconv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
-        self.identity_up = conv(n_feats, n_colors)
+        self.identity_up = normalconv(n_feats, n_colors)
 
         # define residual branch
         m_residual = []
-        m_residual.append(conv(n_colors, n_feats))
+        m_residual.append(normalconv(n_colors, n_feats))
         for _ in range(n_resblocks):
             m_residual.append(RDAB(n_feats))
-        m_residual.append(Upsampler(conv, scale, n_feats))
+        m_residual.append(Upsampler(normalconv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
-        self.residual_up = conv(n_feats, n_colors)
+        self.residual_up = normalconv(n_feats, n_colors)
 
 
     def forward(self, x):

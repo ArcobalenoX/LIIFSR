@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import arch_util
+import common
 from common import compute_num_params
 from models import register
 
@@ -14,8 +14,8 @@ class MSRResNet(nn.Module):
         self.upscale = scale
 
         self.conv_first = nn.Conv2d(in_nc, nf, 3, 1, 1, bias=True)
-        basic_block = arch_util.ResidualBlock_noBN(nf=nf)
-        self.recon_trunk = arch_util.make_layer(basic_block, nb)
+        basic_block = common.ResidualBlock_noBN(nf=nf)
+        self.recon_trunk = common.make_layer(basic_block, nb)
 
         # upsampling
         if self.upscale == 2:
@@ -36,10 +36,10 @@ class MSRResNet(nn.Module):
         self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
 
         # initialization
-        arch_util.initialize_weights([self.conv_first, self.upconv1, self.HRconv, self.conv_last],
+        common.initialize_weights([self.conv_first, self.upconv1, self.HRconv, self.conv_last],
                                      0.1)
         if self.upscale == 4:
-            arch_util.initialize_weights(self.upconv2, 0.1)
+            common.initialize_weights(self.upconv2, 0.1)
 
     def forward(self, x):
         fea = self.lrelu(self.conv_first(x))

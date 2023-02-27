@@ -1,18 +1,19 @@
 import torch
 import torch.nn as nn
-import arch_util
+import common
 
 from models import register
 from common import compute_num_params
+
 
 class Block(nn.Module):
     def __init__(self, nf, group=1):
         super().__init__()
 
-        self.b1 = arch_util.EResidualBlock(nf, nf, group=group)
-        self.c1 = arch_util.BasicBlock(nf * 2, nf, 1, 1, 0)
-        self.c2 = arch_util.BasicBlock(nf * 3, nf, 1, 1, 0)
-        self.c3 = arch_util.BasicBlock(nf * 4, nf, 1, 1, 0)
+        self.b1 = common.EResidualBlock(nf, nf, group=group)
+        self.c1 = common.BasicBlock(nf * 2, nf, 1, 1, 0)
+        self.c2 = common.BasicBlock(nf * 3, nf, 1, 1, 0)
+        self.c3 = common.BasicBlock(nf * 4, nf, 1, 1, 0)
 
     def forward(self, x):
         c0 = o0 = x
@@ -40,19 +41,19 @@ class CARN_M(nn.Module):
         # rgb_range = 1
         # rgb_mean = (0.4488, 0.4371, 0.4040)
         # rgb_std = (1.0, 1.0, 1.0)
-        # self.sub_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std)
-        # self.add_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
+        # self.sub_mean = common.MeanShift(rgb_range, rgb_mean, rgb_std)
+        # self.add_mean = common.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
 
         self.entry = nn.Conv2d(in_nc, nf, 3, 1, 1)
 
         self.b1 = Block(nf, group=group)
         self.b2 = Block(nf, group=group)
         self.b3 = Block(nf, group=group)
-        self.c1 = arch_util.BasicBlock(nf * 2, nf, 1, 1, 0)
-        self.c2 = arch_util.BasicBlock(nf * 3, nf, 1, 1, 0)
-        self.c3 = arch_util.BasicBlock(nf * 4, nf, 1, 1, 0)
+        self.c1 = common.BasicBlock(nf * 2, nf, 1, 1, 0)
+        self.c2 = common.BasicBlock(nf * 3, nf, 1, 1, 0)
+        self.c3 = common.BasicBlock(nf * 4, nf, 1, 1, 0)
 
-        self.upsample = arch_util.UpsampleBlock(nf, scale=scale,
+        self.upsample = common.UpsampleBlock(nf, scale=scale,
                                                 multi_scale=multi_scale,
                                                 group=group)
         self.exit = nn.Conv2d(nf, out_nc, 3, 1, 1)

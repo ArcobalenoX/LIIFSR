@@ -2,8 +2,9 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 import numpy as np
-
+from rcan import CALayer
 
 def compute_num_params(model, text=True):
     #tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
@@ -26,24 +27,9 @@ def compute_flops(model, images):
     print(f'flops: {flops}  params: {params}')
 
 
-def conv(in_channels, out_channels, kernel_size=3, bias=True, stride=1):
+#普通卷积
+def normalconv(in_channels, out_channels, kernel_size=3, bias=True, stride=1):
     return nn.Conv2d(in_channels, out_channels, kernel_size, padding=(kernel_size//2), bias=bias, stride=stride)
-
-
-## Residual  Block (RB)
-class ResBlock(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, bias=True, act=nn.ReLU(True), res_scale=1):
-        super().__init__()
-        self.conv = nn.Sequential(conv(n_feat, n_feat, kernel_size, bias=bias),
-                                  act,
-                                  conv(n_feat, n_feat, kernel_size, bias=bias)
-                                  )
-        self.res_scale = res_scale
-
-    def forward(self, x):
-        y = self.conv(x)
-        y = y * self.res_scale + x
-        return y
 
 
 #分组卷积
@@ -101,70 +87,8 @@ class MeanShift(nn.Conv2d):
         self.bias.data.div_(std)
         self.requires_grad = False
 
-# Channel Attention (CA) Layer
-class CALayer(nn.Module):
-    def __init__(self, channel, reduction=8):
-        super().__init__()
-        # global average pooling: feature --> point
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-        # feature channel downscale and upscale --> channel weight
-        self.conv_du = nn.Sequential(
-            nn.Conv2d(channel, channel // reduction, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(channel // reduction, channel, kernel_size=1),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        _, _, h, w = x.shape
-        y_ave = self.avg_pool(x)
-        # y_max = self.max_pool(x)
-        y_ave = self.conv_du(y_ave)
-        # y_max = self.conv_du(y_max)
-        # y = y_ave + y_max
-        # expand y to C*H*W
-        # expand_y = y.expand(-1,-1,h,w)
-        return x*y_ave
 
 
-# Residual Channel Attention Block (RCAB)
-class RCAB(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1):
-        super().__init__()
-        modules_body = []
-        for i in range(2):
-            modules_body.append(conv(n_feat, n_feat, kernel_size, bias=bias))
-            if bn:
-                modules_body.append(nn.BatchNorm2d(n_feat))
-            if i == 0:
-                modules_body.append(act)
-        modules_body.append(CALayer(n_feat, reduction))
-        self.body = nn.Sequential(*modules_body)
-        self.res_scale = res_scale
-
-    def forward(self, x):
-        #res = self.body(x)
-        res = self.body(x).mul(self.res_scale)
-        res += x
-        return res
-
-
-# Residual Group (RG)
-class ResidualGroup(nn.Module):
-    def __init__(self, conv, n_feat, kernel_size, reduction, act, res_scale, n_resblocks):
-        super().__init__()
-        modules_body = [
-            RCAB(
-                conv, n_feat, kernel_size, reduction, bias=True, bn=False, act=nn.ReLU(True), res_scale=1) \
-            for _ in range(n_resblocks)]
-        modules_body.append(conv(n_feat, n_feat, kernel_size))
-        self.body = nn.Sequential(*modules_body)
-
-    def forward(self, x):
-        res = self.body(x)
-        res += x
-        return res
 
 
 class PALayer(nn.Module):
@@ -185,9 +109,9 @@ class PALayer(nn.Module):
 class FFA(nn.Module):
     def __init__(self, channel, reduction=8):
         super().__init__()
-        self.conv1 = conv(channel, channel)
+        self.conv1 = normalconv(channel, channel)
         self.act1 = nn.ReLU(True)
-        self.conv2 = conv(channel, channel)
+        self.conv2 = normalconv(channel, channel)
         self.ca = CALayer(channel, reduction)
         self.pa = PALayer(channel, reduction)
 
@@ -245,9 +169,9 @@ class SEResBlock(nn.Module):
 class SAM(nn.Module):
     def __init__(self, n_feat, kernel_size, bias):
         super().__init__()
-        self.conv1 = conv(n_feat, n_feat, kernel_size, bias=bias)
-        self.conv2 = conv(n_feat, 3, kernel_size, bias=bias)
-        self.conv3 = conv(3, n_feat, kernel_size, bias=bias)
+        self.conv1 = normalconv(n_feat, n_feat, kernel_size, bias=bias)
+        self.conv2 = normalconv(n_feat, 3, kernel_size, bias=bias)
+        self.conv3 = normalconv(3, n_feat, kernel_size, bias=bias)
 
     def forward(self, x, x_img):
         x1 = self.conv1(x)
@@ -257,27 +181,168 @@ class SAM(nn.Module):
         x1 = x1+x
         return x1, img
 
-##---------- Resizing Modules ----------
-class DownSample(nn.Module):
-    def __init__(self, in_channels, s_factor):
-        super().__init__()
-        self.down = nn.Sequential(nn.Upsample(scale_factor=0.5, mode='bilinear', align_corners=False),
-                                  nn.Conv2d(in_channels, in_channels+s_factor, kernel_size=1, stride=1, padding=0, bias=False))
+
+def initialize_weights(net_l, scale=1):
+    if not isinstance(net_l, list):
+        net_l = [net_l]
+    for net in net_l:
+        for m in net.modules():
+            if isinstance(m, nn.Conv2d):
+                init.kaiming_normal_(m.weight, a=0, mode='fan_in')
+                m.weight.data *= scale  # for residual block
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                init.kaiming_normal_(m.weight, a=0, mode='fan_in')
+                m.weight.data *= scale
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                init.constant_(m.weight, 1)
+                init.constant_(m.bias.data, 0.0)
+
+
+def make_layer(block, n_layers):
+    layers = []
+    for _ in range(n_layers):
+        layers.append(block)
+    return nn.Sequential(*layers)
+
+
+#classSR
+
+class ResidualBlock_noBN(nn.Module):
+    '''Residual block w/o BN
+    ---Conv-ReLU-Conv-+-
+     |________________|
+    '''
+
+    def __init__(self, nf=64):
+        super(ResidualBlock_noBN, self).__init__()
+        self.conv1 = nn.Conv2d(nf, nf, 3, 1, 1, bias=True)
+        self.conv2 = nn.Conv2d(nf, nf, 3, 1, 1, bias=True)
+
+        # initialization
+        initialize_weights([self.conv1, self.conv2], 0.1)
 
     def forward(self, x):
-        x = self.down(x)
-        return x
+        identity = x
+        out = F.relu(self.conv1(x), inplace=True)
+        out = self.conv2(out)
+        return identity + out
 
 
-class UpSample(nn.Module):
-    def __init__(self, in_channels, s_factor):
+class BasicBlock(nn.Sequential):
+    def __init__(
+        self, in_channels, out_channels, kernel_size, stride=1, bias=False,
+        bn=True, act=nn.ReLU(True)):
+
+        m = [nn.Conv2d(
+            in_channels, out_channels, kernel_size,
+            padding=(kernel_size//2), stride=stride, bias=bias)
+        ]
+        if bn: m.append(nn.BatchNorm2d(out_channels))
+        if act is not None: m.append(act)
+        super(BasicBlock, self).__init__(*m)
+
+
+
+class EResidualBlock(nn.Module):
+    def __init__(self,
+                 in_channels, out_channels,
+                 group=1):
         super().__init__()
-        self.up = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
-                                nn.Conv2d(in_channels+s_factor, in_channels, kernel_size=1, stride=1, padding=0, bias=False))
+
+        self.body = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, 1, 1, groups=group),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, 3, 1, 1, groups=group),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, 1, 1, 0),
+        )
 
     def forward(self, x):
-        x = self.up(x)
-        return x
+        out = self.body(x)
+        out = F.relu(out + x)
+        return out
+
+
+
+#多尺寸上采样
+class _UpsampleBlock(nn.Module):
+    def __init__(self,
+                 n_channels, scale,
+                 group=1):
+        super().__init__()
+
+        modules = []
+        if scale == 2 or scale == 4 or scale == 8:
+            for _ in range(int(math.log(scale, 2))):
+                modules += [nn.Conv2d(n_channels, 4 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+                modules += [nn.PixelShuffle(2)]
+        elif scale == 3:
+            modules += [nn.Conv2d(n_channels, 9 * n_channels, 3, 1, 1, groups=group), nn.ReLU(inplace=True)]
+            modules += [nn.PixelShuffle(3)]
+
+        self.body = nn.Sequential(*modules)
+
+    def forward(self, x):
+        out = self.body(x)
+        return out
+
+class UpsampleBlock(nn.Module):
+    def __init__(self,
+                 n_channels, scale, multi_scale,
+                 group=1):
+        super(UpsampleBlock, self).__init__()
+
+        if multi_scale:
+            self.up2 = _UpsampleBlock(n_channels, scale=2, group=group)
+            self.up3 = _UpsampleBlock(n_channels, scale=3, group=group)
+            self.up4 = _UpsampleBlock(n_channels, scale=4, group=group)
+        else:
+            self.up = _UpsampleBlock(n_channels, scale=scale, group=group)
+
+        self.multi_scale = multi_scale
+
+    def forward(self, x, scale):
+        if self.multi_scale:
+            if scale == 2:
+                return self.up2(x)
+            elif scale == 3:
+                return self.up3(x)
+            elif scale == 4:
+                return self.up4(x)
+        else:
+            return self.up(x)
+
+
+def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros'):
+    """Warp an image or feature map with optical flow
+    Args:
+        x (Tensor): size (N, C, H, W)
+        flow (Tensor): size (N, H, W, 2), normal value
+        interp_mode (str): 'nearest' or 'bilinear'
+        padding_mode (str): 'zeros' or 'border' or 'reflection'
+
+    Returns:
+        Tensor: warped image or feature map
+    """
+    assert x.size()[-2:] == flow.size()[1:3]
+    B, C, H, W = x.size()
+    # mesh grid
+    grid_y, grid_x = torch.meshgrid(torch.arange(0, H), torch.arange(0, W))
+    grid = torch.stack((grid_x, grid_y), 2).float()  # W(x), H(y), 2
+    grid.requires_grad = False
+    grid = grid.type_as(x)
+    vgrid = grid + flow
+    # scale grid to [-1,1]
+    vgrid_x = 2.0 * vgrid[:, :, :, 0] / max(W - 1, 1) - 1.0
+    vgrid_y = 2.0 * vgrid[:, :, :, 1] / max(H - 1, 1) - 1.0
+    vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=3)
+    output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode)
+    return output
+
 
 
 class Get_gradient(nn.Module):

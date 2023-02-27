@@ -1,10 +1,15 @@
 import math
 import torch
 import torch.nn as nn
-import arch_util
-import utils
+import common
 from models import register
 from common import compute_num_params
+
+# rcan arch
+def default_conv(in_channels, out_channels, kernel_size, bias=True):
+    return nn.Conv2d(
+        in_channels, out_channels, kernel_size,
+        padding=(kernel_size//2), bias=bias)
 
 ## Channel Attention (CA) Layer
 class CALayer(nn.Module):
@@ -95,12 +100,12 @@ class RCAN(nn.Module):
         n_colors = 3
         kernel_size = 3
         act = nn.ReLU(True)
-        conv = arch_util.default_conv
+        conv = default_conv
 
         # RGB mean for DIV2K
         rgb_mean = (0.4488, 0.4371, 0.4040)
         rgb_std = (1.0, 1.0, 1.0)
-        self.sub_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std)
+        self.sub_mean = common.MeanShift(rgb_range, rgb_mean, rgb_std)
         
         # define head module
         modules_head = [conv(n_colors, n_feats, kernel_size)]
@@ -118,13 +123,13 @@ class RCAN(nn.Module):
             Upsampler(conv, scale, n_feats, act=False),
             conv(n_feats, n_colors, kernel_size)]
 
-        self.add_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
+        self.add_mean = common.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
 
         self.head = nn.Sequential(*modules_head)
         self.body = nn.Sequential(*modules_body)
         self.tail = nn.Sequential(*modules_tail)
         
-        arch_util.initialize_weights([self.head, self.body, self.tail], 0.1)
+        common.initialize_weights([self.head, self.body, self.tail], 0.1)
 
     def forward(self, x):
         x = self.sub_mean(x)

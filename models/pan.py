@@ -2,8 +2,7 @@ import functools
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import arch_util
-import utils
+import common
 from models import register
 from common import compute_num_params
 

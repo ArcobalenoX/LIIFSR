@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient
+from common import normalconv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient
 from rcan import RCAB
 from smoothx import RSPA
 from attention.PolarizedSelfAttention import ParallelPolarizedSelfAttention, SequentialPolarizedSelfAttention
@@ -15,30 +15,30 @@ class psa(nn.Module):
 
         #define identity branch
         m_identity=[]
-        m_identity.append(conv(n_colors, n_feats))
+        m_identity.append(normalconv(n_colors, n_feats))
         m_identity.append(nn.ReLU())
-        m_identity.append(conv(n_feats, n_feats))
-        m_identity.append(Upsampler(conv, scale, n_feats))
+        m_identity.append(normalconv(n_feats, n_feats))
+        m_identity.append(Upsampler(normalconv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
 
         # define residual branch
         m_residual=[]
-        m_residual.append(conv(n_colors, n_feats))
+        m_residual.append(normalconv(n_colors, n_feats))
         for _ in range(n_resblocks):
             # m_residual.append(Res2CAPA(n_feats))
             # m_residual.append(RSPA(n_feats))
-            m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
+            m_residual.append(RCAB(normalconv, n_feats, 3, n_feats//4))
             # m_residual.append(SequentialPolarizedSelfAttention(n_feats))
             # m_residual.append(ParallelPolarizedSelfAttention(n_feats))
-        m_residual.append(Upsampler(conv, scale, n_feats))
+        m_residual.append(Upsampler(normalconv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
 
 
         m_rebuild=[]
-        m_rebuild.append(conv(n_feats*2, n_feats))
-        # m_rebuild.append(Upsampler(conv, scale, n_feats))
+        m_rebuild.append(normalconv(n_feats*2, n_feats))
+        # m_rebuild.append(Upsampler(normalconv, scale, n_feats))
         # m_rebuild.append(nn.PReLU(n_feats))
-        m_rebuild.append(conv(n_feats, n_colors))
+        m_rebuild.append(normalconv(n_feats, n_colors))
 
         self.rebuild = nn.Sequential(*m_rebuild)
 
@@ -64,35 +64,35 @@ class psagrad(nn.Module):
 
         #define identity branch
         m_identity=[]
-        m_identity.append(conv(n_colors, n_feats))
+        m_identity.append(normalconv(n_colors, n_feats))
         m_identity.append(nn.ReLU())
-        m_identity.append(conv(n_feats, n_feats))
-        # m_identity.append(Upsampler(conv, scale, n_feats))
+        m_identity.append(normalconv(n_feats, n_feats))
+        # m_identity.append(Upsampler(normalconv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
 
         # define residual branch
         m_residual=[]
-        m_residual.append(conv(n_colors, n_feats))
+        m_residual.append(normalconv(n_colors, n_feats))
         for _ in range(n_resblocks):
             # m_residual.append(Res2CAPA(n_feats))
             m_residual.append(RSPA(n_feats))
-            # m_residual.append(RCAB(conv, n_feats, 3, n_feats//4))
+            # m_residual.append(RCAB(normalconv, n_feats, 3, n_feats//4))
             # m_residual.append(SequentialPolarizedSelfAttention(n_feats))
             # m_residual.append(ParallelPolarizedSelfAttention(n_feats))
-        # m_residual.append(Upsampler(conv, scale, n_feats))
+        # m_residual.append(Upsampler(normalconv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
 
         m_grad =[]
         m_grad.append(Get_laplacian_gradient())
-        m_grad.append(conv(n_colors, n_feats))
-        # m_grad.append(Upsampler(conv, scale, n_feats))
+        m_grad.append(normalconv(n_colors, n_feats))
+        # m_grad.append(Upsampler(normalconv, scale, n_feats))
         self.grad = nn.Sequential(*m_grad)
 
         m_rebuild=[]
-        m_rebuild.append(conv(n_feats*3, n_feats))
-        m_rebuild.append(Upsampler(conv, scale, n_feats))
+        m_rebuild.append(normalconv(n_feats*3, n_feats))
+        m_rebuild.append(Upsampler(normalconv, scale, n_feats))
         m_rebuild.append(nn.PReLU(n_feats))
-        m_rebuild.append(conv(n_feats, n_colors))
+        m_rebuild.append(normalconv(n_feats, n_colors))
 
         self.rebuild = nn.Sequential(*m_rebuild)
 

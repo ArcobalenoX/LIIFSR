@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-from common import compute_num_params, Get_gradient, PALayer, CALayer, conv, Upsampler
+from common import compute_num_params, Get_gradient, PALayer, CALayer, normalconv, Upsampler
 from collections import OrderedDict
 from models import register
 from attention.PolarizedSelfAttention import ParallelPolarizedSelfAttention, SequentialPolarizedSelfAttention
@@ -271,8 +271,8 @@ class MKRB(nn.Module):
         self.brb_1x1 = nn.Conv2d(n_feats, n_feats // 4, kernel_size=1, padding=0)
         self.act = nn.LeakyReLU(0.01, True)
 
-        self.conv2 = conv(n_feats, n_feats, 3)
-        self.conv3 = conv(n_feats * 3, n_feats, 1)
+        self.conv2 = normalconv(n_feats, n_feats, 3)
+        self.conv3 = normalconv(n_feats * 3, n_feats, 1)
 
     def forward(self, x):
         x33 = self.brb_3x3(x)

@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 from models import register
-from common import conv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient
+from common import normalconv, CALayer, PALayer, Upsampler, compute_num_params, Get_laplacian_gradient
 
 
 class Res2neck(nn.Module):
@@ -72,10 +72,10 @@ class Res2CAPA(nn.Module):
 class RSPA(nn.Module):
     def __init__(self, n_feats):
         super().__init__()
-        self.conv1 = conv(n_feats, n_feats, 3)
+        self.conv1 = normalconv(n_feats, n_feats, 3)
         self.act1 = nn.ReLU(True)
-        self.conv2 = conv(n_feats, n_feats, 3)
-        self.conv3 = conv(n_feats*3, n_feats, 1)
+        self.conv2 = normalconv(n_feats, n_feats, 3)
+        self.conv3 = normalconv(n_feats*3, n_feats, 1)
         self.att = PALayer(n_feats, 8)
 
     def forward(self, x):
@@ -96,24 +96,24 @@ class res2cpgrad(nn.Module):
 
         #define identity branch
         m_identity = []
-        m_identity.append(conv(n_colors, n_feats))
-        m_identity.append(Upsampler(conv, scale, n_feats))
+        m_identity.append(normalconv(n_colors, n_feats))
+        m_identity.append(Upsampler(normalconv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
-        self.identity_up = conv(n_feats, n_colors)
+        self.identity_up = normalconv(n_feats, n_colors)
 
         # define residual branch
         m_residual = []
-        m_residual.append(conv(n_colors, n_feats))
+        m_residual.append(normalconv(n_colors, n_feats))
         for _ in range(n_resblocks):
             m_residual.append(Res2CAPA(n_feats))
-        m_residual.append(Upsampler(conv, scale, n_feats))
+        m_residual.append(Upsampler(normalconv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
-        self.residual_up = conv(n_feats, n_colors)
+        self.residual_up = normalconv(n_feats, n_colors)
 
         self.get_grad = Get_laplacian_gradient()
-        self.grad_up = Upsampler(conv, scale, n_colors)
+        self.grad_up = Upsampler(normalconv, scale, n_colors)
 
-        #self.fusion = conv(n_colors, n_colors)
+        #self.fusion = normalconv(n_colors, n_colors)
 
 
     def forward(self, x):
@@ -144,25 +144,25 @@ class res2l0(nn.Module):
 
         #define identity branch
         m_identity = []
-        m_identity.append(conv(n_colors, n_feats))
-        m_identity.append(Upsampler(conv, scale, n_feats))
+        m_identity.append(normalconv(n_colors, n_feats))
+        m_identity.append(Upsampler(normalconv, scale, n_feats))
         self.identity = nn.Sequential(*m_identity)
 
         # define residual branch
         m_residual = []
-        m_residual.append(conv(n_colors, n_feats))
+        m_residual.append(normalconv(n_colors, n_feats))
         for _ in range(n_resblocks):
             m_residual.append(Res2neck(n_feats, n_feats))
-        m_residual.append(Upsampler(conv, scale, n_feats))
+        m_residual.append(Upsampler(normalconv, scale, n_feats))
         self.residual = nn.Sequential(*m_residual)
 
         # define grad branch
         m_smoothgrad = []
-        m_smoothgrad.append(conv(n_colors, n_feats))
-        m_smoothgrad.append(Upsampler(conv, scale, n_feats))
+        m_smoothgrad.append(normalconv(n_colors, n_feats))
+        m_smoothgrad.append(Upsampler(normalconv, scale, n_feats))
         self.smoothgrad = nn.Sequential(*m_smoothgrad)
 
-        self.fusion = conv(n_feats*3, n_colors)
+        self.fusion = normalconv(n_feats*3, n_colors)
 
 
     def forward(self, x, l):
