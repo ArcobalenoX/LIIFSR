@@ -37,11 +37,11 @@ class CARN_M(nn.Module):
     def __init__(self, in_nc=3, out_nc=3, nf=64, scale=4, multi_scale=False, group=4):
         super().__init__()
         self.scale = scale
-        rgb_range = 1
-        rgb_mean = (0.4488, 0.4371, 0.4040)
-        rgb_std = (1.0, 1.0, 1.0)
-        self.sub_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std)
-        self.add_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
+        # rgb_range = 1
+        # rgb_mean = (0.4488, 0.4371, 0.4040)
+        # rgb_std = (1.0, 1.0, 1.0)
+        # self.sub_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std)
+        # self.add_mean = arch_util.MeanShift(rgb_range, rgb_mean, rgb_std, 1)
 
         self.entry = nn.Conv2d(in_nc, nf, 3, 1, 1)
 
@@ -58,7 +58,7 @@ class CARN_M(nn.Module):
         self.exit = nn.Conv2d(nf, out_nc, 3, 1, 1)
 
     def forward(self, x):
-        x = self.sub_mean(x)
+        # x = self.sub_mean(x)
         x = self.entry(x)
         c0 = o0 = x
 
@@ -77,7 +77,7 @@ class CARN_M(nn.Module):
         out = self.upsample(o3, scale=self.scale)
 
         out = self.exit(out)
-        out = self.add_mean(out)
+        # out = self.add_mean(out)
 
         return out
 

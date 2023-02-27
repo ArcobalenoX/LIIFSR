@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/WHU-RS19-train/GT
+      root_path: load/selfAID/AID-train
       repeat: 1
       cache: none
   wrapper:
@@ -17,7 +17,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfAID/AID-test
+      root_path: load/selfAID/AID-test
       repeat: 1
       cache: none
   wrapper:

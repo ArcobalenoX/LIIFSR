@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfWHURS/sobel/high-sobel-test
+      root_path: load/selfWHURS/sobel/high-sobel-test
   wrapper:
     name: sr-paired
     args:

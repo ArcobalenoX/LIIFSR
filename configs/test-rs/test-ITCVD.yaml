@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/ITCVD\Test\patch
+      root_path: load/ITCVD\Test\patch
   wrapper:
     name: sr-paired
     args:

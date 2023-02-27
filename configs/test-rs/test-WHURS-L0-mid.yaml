@@ -2,8 +2,8 @@ test_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/selfWHURS/sobel/mid-sobel-test
-      L0_dir: data/selfWHURS/smooth/smooth-whurs-test-mid-grad
+      hr_dir: load/selfWHURS/sobel/mid-sobel-test
+      L0_dir: load/selfWHURS/smooth/smooth-whurs-test-mid-grad
       cache: none
   wrapper:
     name: LO-wrappers

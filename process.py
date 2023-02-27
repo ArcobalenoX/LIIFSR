@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
     # for i in os.listdir(r"AID\visualcmp"):
     #     print(i)
-    cmpimg = "baseballfield_75"
+    cmpimg = "river_203"
     copy_imgs(cmpimg)
     imgs_dir = os.path.join(r"AID\visualcmp",cmpimg)
-    scale_crop(imgs_dir, imgs_dir, x=400, y=200, width=200, scale=3)
+    scale_crop(imgs_dir, imgs_dir, x=300, y=200, width=200, scale=3)

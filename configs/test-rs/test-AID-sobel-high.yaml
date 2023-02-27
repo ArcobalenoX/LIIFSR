@@ -2,7 +2,7 @@ test_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfAID/AID-test-high
+      root_path: load/selfAID/AID-test-high
   wrapper:
     name: sr-paired
     args:

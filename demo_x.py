@@ -20,14 +20,16 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='save/WHURS19_edsrblx4/epoch-last.pth')
-    parser.add_argument('--lrdir', default=r'data/selfWHURS/WHURS-test/LR/x4')
-    parser.add_argument('--hrdir', default=r'data/selfWHURS/WHURS-test/GT')
+    parser.add_argument('--lrdir', default=r'load/selfWHURS/WHURS-test/LR/x4')
+    parser.add_argument('--hrdir', default=r'load/selfWHURS/WHURS-test/GT')
+    parser.add_argument('--scale', default=4)
+
     args = parser.parse_args()
 
     model = models.make(torch.load(args.model)['model'], load_sd=True).cuda()
     model_name = args.model.split(os.sep)[-2]
 
-    scale = int(model_name[-1])
+    scale = int(args.scale)
     lr_dir = args.lrdir
     hr_dir = args.hrdir
     sr_dir = os.path.join('AID', model_name)

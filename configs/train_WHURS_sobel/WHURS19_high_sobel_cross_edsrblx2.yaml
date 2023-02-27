@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfWHURS/sobel/high-sobel-cross-train
+      root_path: load/selfWHURS/sobel/high-sobel-cross-train
       repeat: 3
       cache: in_memory
   wrapper:
@@ -17,7 +17,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfWHURS/sobel/high-sobel-test
+      root_path: load/selfWHURS/sobel/high-sobel-test
       repeat: 1
       cache: in_memory
 

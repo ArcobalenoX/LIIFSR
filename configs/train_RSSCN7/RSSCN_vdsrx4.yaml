@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfRSSCN/RSSCN-train
+      root_path: load/selfRSSCN/RSSCN-train
       repeat: 1
       cache: in_memory
   wrapper:
@@ -17,7 +17,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfRSSCN/RSSCN-test
+      root_path: load/selfRSSCN/RSSCN-test
       repeat: 1
       cache: in_memory
   wrapper:

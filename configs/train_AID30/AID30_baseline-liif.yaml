@@ -2,7 +2,7 @@ train_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfAID/AID-train
+      root_path: load/selfAID/AID-train
       repeat: 5
       cache: none
   wrapper:
@@ -18,7 +18,7 @@ val_dataset:
   dataset:
     name: image-folder
     args:
-      root_path: data/selfAID/AID-test
+      root_path: load/selfAID/AID-test
       first_k: 10
       repeat: 10
       cache: none

@@ -2,8 +2,8 @@ train_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/selfWHURS/sobel/low-sobel-cross-train
-      L0_dir: data/selfWHURS/smooth/smooth-whurs-train-grad-cross-low
+      hr_dir: load/selfWHURS/sobel/low-sobel-cross-train
+      L0_dir: load/selfWHURS/smooth/smooth-whurs-train-grad-cross-low
       repeat: 3
       cache: in_memory
   wrapper:
@@ -18,8 +18,8 @@ val_dataset:
   dataset:
     name: imageL0-folder
     args:
-      hr_dir: data/selfWHURS/sobel/low-sobel-test
-      L0_dir: data/selfWHURS/smooth/smooth-whurs-test-low-grad
+      hr_dir: load/selfWHURS/sobel/low-sobel-test
+      L0_dir: load/selfWHURS/smooth/smooth-whurs-test-low-grad
       repeat: 1
       cache: in_memory
   wrapper:
