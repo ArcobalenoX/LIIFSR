@@ -863,7 +863,7 @@ def swin(scale=4):
     return model
 
 @register('selfswin')
-def swin(height=600, width=600, window_size=8, embed_dim=60, scale=4):
+def swin(height=600, width=600, window_size=8, embed_dim=60, upscale=4):
     height = (height // upscale // window_size + 1) * window_size
     width = (width // upscale // window_size + 1) * window_size
     model = SwinIR(upscale=upscale, img_size=(height, width),

@@ -1,4 +1,5 @@
 import math
+from thop import profile
 import torch
 import torch.nn as nn
 import common
@@ -143,9 +144,14 @@ class RCAN(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1, 3, 48, 48)
-    model = RCAN(n_feats=64, scale=8)
+    model = RCAN(n_feats=64, scale=4)
+
+    flops, params = profile(model, (x))
+    print(f'flops: {flops}  params: {params}')
+
     y = model(x)
-    print(model)
+
+    # print(model)
     param_nums = compute_num_params(model, True)
     print(param_nums)
     print(y.shape)

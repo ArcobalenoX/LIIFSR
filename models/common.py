@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 import numpy as np
-from rcan import CALayer
+
 
 def compute_num_params(model, text=True):
     #tot = int(sum([np.prod(p.shape) for p in model.parameters()]))
@@ -88,9 +88,6 @@ class MeanShift(nn.Conv2d):
         self.requires_grad = False
 
 
-
-
-
 class PALayer(nn.Module):
     def __init__(self, channel, reduction=8):
         super().__init__()
@@ -112,7 +109,7 @@ class FFA(nn.Module):
         self.conv1 = normalconv(channel, channel)
         self.act1 = nn.ReLU(True)
         self.conv2 = normalconv(channel, channel)
-        self.ca = CALayer(channel, reduction)
+        self.ca = SELayer(channel, reduction)
         self.pa = PALayer(channel, reduction)
 
     def forward(self, x):

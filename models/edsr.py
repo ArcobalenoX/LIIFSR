@@ -2,6 +2,7 @@
 
 import math
 import time
+from thop import profile
 from argparse import Namespace
 
 import torch
@@ -198,13 +199,18 @@ def make_edsr(n_resblocks=32, n_feats=256, res_scale=0.1,
     return EDSR(args)
 
 if __name__ == '__main__':
-    x = torch.rand(1, 3, 48, 48)
-    model = make_edsr_baseline(n_resblocks=20, n_feats=64, scale=4)
+    x = torch.rand(1, 3, 48, 48).cuda()
+    # model = make_edsr_baseline(n_resblocks=20, n_feats=64, scale=4).cuda()
+    model = make_edsr(n_resblocks=32, n_feats=256,scale=4,rgb_range=3).cuda()
+
+    flops, params = profile(model, (x))
+    print(f'flops: {flops}  params: {params}')
+
     t = time.time()
     y = model(x)
     #print(model)
     print("time ", time.time()-t)
     print(y.shape)
-    print("param_nums:", compute_num_params(model, False))
+    # print("param_nums:", compute_num_params(model, False))
 
 

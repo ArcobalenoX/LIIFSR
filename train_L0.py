@@ -10,6 +10,7 @@ from torch.optim.lr_scheduler import MultiStepLR, CosineAnnealingLR
 from torchvision.utils import save_image
 from tqdm import tqdm
 import sys
+
 sys.path.append("models")
 import datasets
 from models import models
@@ -89,9 +90,8 @@ def eval_lpips(loader, model, data_norm=None, verbose=False):
     gt_sub = torch.FloatTensor(t['sub']).view(1, 1, -1).cuda()
     gt_div = torch.FloatTensor(t['div']).view(1, 1, -1).cuda()
 
-
     # Linearly calibrated models (LPIPS)
-    lpips_fn = lpips.LPIPS(net='alex').cuda() # Can also set net = 'squeeze' or 'vgg'
+    lpips_fn = lpips.LPIPS(net='alex').cuda()  # Can also set net = 'squeeze' or 'vgg'
 
     val_lpips_v = utils.Averager()
 
@@ -126,7 +126,7 @@ def make_data_loader(spec, tag=''):
         log(f'  {k}: shape={tuple(v.shape)}')
 
     loader = DataLoader(dataset, batch_size=spec['batch_size'],
-        shuffle=(tag == 'train'), num_workers=0, pin_memory=False)
+                        shuffle=(tag == 'train'), num_workers=0, pin_memory=False)
     return loader
 
 
@@ -175,13 +175,10 @@ def train(train_loader, model, optimizer):
     criterion_edge = EdgeLoss()
     criterion_ssim = SSIMLoss()
 
-
-
     train_dataset = config['train_dataset']
-    #inp_size = train_dataset['wrapper']['args']['inp_size']
+    # inp_size = train_dataset['wrapper']['args']['inp_size']
     scale = train_dataset['wrapper']['args']['scale']
-    #bs = train_dataset['batch_size']
-
+    # bs = train_dataset['batch_size']
 
     data_norm = config['data_norm']
     t = data_norm['lr']
@@ -194,7 +191,6 @@ def train(train_loader, model, optimizer):
     gt_sub = torch.FloatTensor(t['sub']).cuda()
     gt_div = torch.FloatTensor(t['div']).cuda()
 
-
     for batch in tqdm(train_loader, leave=False, desc='train'):
         for k, v in batch.items():
             batch[k] = v.cuda()
@@ -204,15 +200,15 @@ def train(train_loader, model, optimizer):
         pred = model(lr, ls)
         gt = (batch['gt'] - gt_sub) / gt_div
 
-        #print(lr.shape,pred.shape,gt.shape)
+        # print(lr.shape,pred.shape,gt.shape)
 
         loss_char = criterion_char(pred, gt)
         loss_edge = criterion_edge(pred, gt)
-        #loss_ssim = 1-criterion_ssim(pred, gt)
-        pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
-        loss_dual = criterion_char(pred_dual, lr)
+        loss_ssim = 1 - criterion_ssim(pred, gt)
+        # pred_dual = F.interpolate(pred, scale_factor=1/scale, mode='bicubic')
+        # loss_dual = criterion_char(pred_dual, lr)
 
-        loss = loss_char + loss_edge + loss_dual #+ 0.1*loss_ssim
+        loss = loss_char + loss_edge + 0.1 * loss_ssim  # + loss_dual
 
         train_loss.add(loss.item())
         optimizer.zero_grad()
@@ -232,7 +228,7 @@ def main(config_, save_path):
 
     model, optimizer, epoch_start, lr_scheduler = prepare_training()
 
-    #多GPU并行
+    # 多GPU并行
     n_gpus = len(os.environ['CUDA_VISIBLE_DEVICES'].split(','))
     if n_gpus > 1:
         model = nn.parallel.DataParallel(model)
@@ -240,7 +236,8 @@ def main(config_, save_path):
     epoch_max = config['epoch_max']
     epoch_val = config.get('epoch_val')
     epoch_save = config.get('epoch_save')
-    max_val_v = -1e18
+    max_val_psnr = -1e18
+    max_val_ssim = -1e18
 
     timer = utils.Timer()
 
@@ -249,11 +246,10 @@ def main(config_, save_path):
         log_info = [f'epoch {epoch}/{epoch_max}']
 
         lr = optimizer.param_groups[0]['lr']
-        #print(f"epoch--{epoch},lr--{lr}")
+        # print(f"epoch--{epoch},lr--{lr}")
         writer.add_scalar('lr', lr, epoch)
 
-
-        train_loss = train(train_loader, model, optimizer )
+        train_loss = train(train_loader, model, optimizer)
 
         if lr_scheduler is not None:
             lr_scheduler.step()
@@ -274,7 +270,7 @@ def main(config_, save_path):
             'optimizer': optimizer_spec,
             'epoch': epoch
         }
- 
+
         torch.save(sv_file, os.path.join(save_path, 'epoch-last.pth'))
 
         if (epoch_save is not None) and (epoch % epoch_save == 0):
@@ -290,9 +286,12 @@ def main(config_, save_path):
             log_info.append(f'val: psnr={val_psnr:.4f} ssim={val_ssim:.4f}')
             writer.add_scalars('psnr', {'val': val_psnr}, epoch)
             writer.add_scalars('ssim', {'val': val_ssim}, epoch)
-            if val_psnr > max_val_v:
-                max_val_v = val_psnr
-                torch.save(sv_file, os.path.join(save_path, 'epoch-best.pth'))
+            if val_psnr > max_val_psnr:
+                max_val_psnr = val_psnr
+                torch.save(sv_file, os.path.join(save_path, 'epoch-best-psnr.pth'))
+            if val_ssim > max_val_ssim:
+                max_val_ssim = val_ssim
+                torch.save(sv_file, os.path.join(save_path, 'epoch-best-ssim.pth'))
 
         t = timer.t()
         prog = (epoch - epoch_start + 1) / (epoch_max - epoch_start + 1)
@@ -315,11 +314,11 @@ if __name__ == '__main__':
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
     torch.cuda.empty_cache()
 
-    #载入配置文件的参数
+    # 载入配置文件的参数
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         print(args.config)
-    #保存的checkpoint路径
+    # 保存的checkpoint路径
     save_name = args.name
     if save_name is None:
         save_name = args.config.split('/')[-1][:-len('.yaml')]

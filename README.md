@@ -1,7 +1,7 @@
 LIIF self
 
 
-*_liif demo demos是训练和测试LIIF的代码
+*_liif 是训练和测试LIIF的代码
 
 *_x 是训练和测试通常网络的代码
 
